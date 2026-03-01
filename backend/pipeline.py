@@ -102,21 +102,28 @@ async def _call_openai(
     max_tokens: int,
     retries: int = 2,
 ) -> str:
-    """Make a single OpenAI Responses API call and return text response."""
+    """Make a single OpenAI Chat Completions API call and return text response."""
     model = _map_model_for_openai(model)
-    input_messages = [
+    messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
 
     for attempt in range(retries + 1):
-        response = await client.responses.create(
+        response = await client.chat.completions.create(
             model=model,
             temperature=temperature,
-            max_output_tokens=max_tokens,
-            input=input_messages,
+            max_tokens=max_tokens,
+            messages=messages,
+            response_format={"type": "json_object"},
         )
-        text = response.output_text
+        choice = response.choices[0]
+        text = choice.message.content
+        if choice.finish_reason == "length":
+            logger.warning(
+                f"OpenAI response truncated ({len(text)} chars). "
+                f"Consider increasing max_tokens."
+            )
 
         try:
             _extract_json(text)
@@ -128,7 +135,7 @@ async def _call_openai(
                     attempt + 1,
                     retries + 1,
                 )
-                input_messages = [
+                messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                     {"role": "assistant", "content": text},
