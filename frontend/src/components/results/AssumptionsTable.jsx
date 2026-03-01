@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const PLAUSIBILITY_STYLES = {
   Weak: "bg-red-100 text-red-800",
@@ -6,6 +6,18 @@ const PLAUSIBILITY_STYLES = {
   Contested: "bg-gray-100 text-gray-700",
   Strong: "bg-green-100 text-green-800",
 };
+
+const PLAUS_ORDER = ["Weak", "Mixed", "Contested", "Strong"];
+
+function sortByImplausibility(assumptions) {
+  return [...assumptions].sort((a, b) => {
+    const pA = PLAUS_ORDER.indexOf(a.plausibility || "Mixed");
+    const pB = PLAUS_ORDER.indexOf(b.plausibility || "Mixed");
+    if (pA !== pB) return pA - pB;
+    // Within same plausibility, critical first
+    return (b.critical ? 1 : 0) - (a.critical ? 1 : 0);
+  });
+}
 
 function AssumptionRow({ assumption, index }) {
   const [open, setOpen] = useState(false);
@@ -24,13 +36,10 @@ function AssumptionRow({ assumption, index }) {
         <td className="px-3 py-2.5 text-[13px] font-semibold font-mono text-gray-400 w-9 align-middle">
           {assumption.number}
         </td>
-        <td className="px-3 py-2.5 font-body text-[13px] text-slate-900 leading-snug align-middle">
+        <td className={`px-3 py-2.5 font-body text-[13px] leading-snug align-middle ${
+          assumption.critical ? "font-semibold text-slate-900" : "text-slate-900"
+        }`}>
           {assumption.assumption}
-          {assumption.critical && (
-            <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-800 font-semibold align-middle">
-              KEY
-            </span>
-          )}
         </td>
         <td className="px-3 py-2.5 text-center align-middle">
           <span
@@ -69,9 +78,7 @@ function AssumptionRow({ assumption, index }) {
 export default function AssumptionsTable({ assumptions }) {
   if (!assumptions?.length) return null;
 
-  const unstated = assumptions.filter(
-    (a) => a.stated_or_unstated === "Unstated"
-  ).length;
+  const sorted = useMemo(() => sortByImplausibility(assumptions), [assumptions]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -97,7 +104,7 @@ export default function AssumptionsTable({ assumptions }) {
           </tr>
         </thead>
         <tbody>
-          {assumptions.map((a, i) => (
+          {sorted.map((a, i) => (
             <AssumptionRow key={a.number} assumption={a} index={i} />
           ))}
         </tbody>
@@ -112,10 +119,8 @@ export default function AssumptionsTable({ assumptions }) {
           Unstated
         </span>
         <span>
-          <span className="inline-block px-1 text-[9px] bg-red-100 text-red-800 rounded font-semibold mr-1 align-middle">
-            KEY
-          </span>{" "}
-          Load-bearing
+          <span className="font-semibold mr-1 align-middle">Bold</span>{" "}
+          = Load-bearing
         </span>
       </div>
     </div>

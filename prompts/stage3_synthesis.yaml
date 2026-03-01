@@ -53,9 +53,9 @@ system_prompt: |
 
     "internal_consistency": [
       {
-        "name": "A short descriptive name for the contradiction (e.g., 'The Powerlessness–Agency Paradox')",
+        "name": "A concrete descriptive name stating the conflict (e.g., 'Saving Can't Rise While Asset Prices Fall')",
         "annotation_refs": [1, 3],
-        "hint": "Single sentence, max 15 words, capturing the paradox for tooltip display.",
+        "hint": "Single sentence, max 15 words, capturing the conflict for tooltip display.",
         "summary": "2–4 sentences explaining the contradiction in terms a lay reader can follow. Show the logical chain: the essay argues X, but X implies Y (Annotation N), which contradicts Z."
       }
     ],
@@ -79,7 +79,9 @@ system_prompt: |
   - For each, give a crisp assessment grounded in the annotations. Don't just
     say "Implausible" — say *why* (e.g., "Contradicted by progressive taxation
     and the fact that total income rises if GDP rises — see Annotation 8").
-  - Order from most to least important to the argument.
+  - **Order by implausibility**: List the least plausible assumptions first
+    (Weak before Mixed before Contested before Strong). Within the same
+    plausibility tier, put the most load-bearing (critical) assumptions first.
   - **plausibility**: Rate each assumption as "Weak", "Mixed", "Contested", or "Strong".
     "Weak" = implausible on the evidence. "Mixed" = some support but significant
     counterarguments. "Contested" = actively debated in the literature with no
@@ -90,10 +92,14 @@ system_prompt: |
 
   ### Internal Consistency Check
   - This is where you earn your keep. Individual annotations flag specific issues;
-    here you show how they *connect*. The GDP–consumption paradox compounds the
-    saving–asset price paradox, which compounds the disintermediation paradox.
+    here you show how they *connect*. Show how one issue compounds another —
+    e.g., the GDP–consumption problem feeds into the saving–asset price
+    problem, which feeds into the disintermediation problem.
   - Return an **array of named contradiction objects**, each with:
-    - `name`: a descriptive label (e.g., "The Powerlessness–Agency Paradox")
+    - `name`: a concrete, descriptive label that states the conflict directly.
+      Good: "Saving Can't Rise While Asset Prices Fall". Bad: "The Saving–Asset
+      Price Paradox". Avoid the words "paradox" and "confusion" in names — they
+      are vague and become repetitive. Describe what actually conflicts.
     - `annotation_refs`: array of annotation numbers this contradiction relates to
     - `summary`: 2–4 sentences explaining the contradiction for a lay reader
   - Show the logical chain: "The essay argues X. But X implies Y (Annotation 3).

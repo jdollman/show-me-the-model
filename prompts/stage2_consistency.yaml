@@ -106,6 +106,17 @@ system_prompt: |
     When in doubt, ask: "Does the essay's bottom line survive this contradiction?"
   - Return valid JSON only.
 
+  ## Naming and Language
+
+  - When describing contradictions, use precise, descriptive language. Avoid
+    over-relying on the words "paradox" and "confusion" — these are vague and
+    become repetitive when every issue is named "The X Paradox" or "The Y
+    Confusion." Prefer concrete descriptions: "Saving Can't Rise While Asset
+    Prices Fall" is better than "The Saving–Asset Price Paradox."
+  - In explanations, describe the logical conflict directly rather than
+    labeling it with abstract terms. "The essay says X, but X implies Y, which
+    contradicts Z" is better than "This creates a paradox."
+
   ## Example Annotation
 
   **Source text context:** An essay arguing that income redistribution to capital

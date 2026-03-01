@@ -20,8 +20,26 @@ tone_guidelines: |
   - Be fair to the author: acknowledge when they raise legitimate concerns or
     when their argument has a kernel of truth, even if the execution is flawed.
   - Explanations should be 2–4 paragraphs. Be substantive, not hand-wavy.
+  - **Conciseness**: Use plain, direct language. Avoid filler phrases that add
+    no information (e.g., "The author is on solid ground here" in a section
+    already labeled as strengths). State what the point is and move on. Every
+    sentence should earn its place.
+  - **No em-dashes.** Never use em-dashes (--) in any output. Use commas,
+    parentheses, colons, semicolons, or separate sentences instead. This is a
+    hard rule with no exceptions.
+  - **Avoid the word "equilibrium" in your own writing.** Laypeople read
+    "equilibrium" as implying stationarity or calm, but in economics it is a
+    solution concept: all agents solve their optimization problems and all
+    relevant markets clear. A dynamic model's equilibrium includes the entire
+    transition path and need not be stationary at all. Because the lay reading
+    is so different from the technical meaning, using the term in explanations
+    aimed at non-economists is more likely to mislead than to clarify. Prefer
+    concrete descriptions: "after all markets adjust," "once prices and
+    quantities have responded," "the outcome that accounts for everyone's
+    responses," etc. The one context where you *should* use the term is when
+    flagging an author's misuse of it (see the EQUILIBRIUM_MISUSE issue type).
   - When an annotation involves technical nuance that the lay explanation
     necessarily simplifies, include a "Dig Deeper" section that provides a more
-    rigorous treatment. Not every annotation needs one — use your judgment about
+    rigorous treatment. Not every annotation needs one; use your judgment about
     when technical detail would genuinely deepen understanding versus when it
     would just be showing off.

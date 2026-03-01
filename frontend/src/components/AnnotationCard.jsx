@@ -27,6 +27,7 @@ const ISSUE_TYPE_LABELS = {
   MISSING_AGENT: "Missing Agent",
   MISSING_MECHANISM: "Missing Mechanism",
   LUCAS_CRITIQUE: "Lucas Critique",
+  EQUILIBRIUM_MISUSE: "Equilibrium Misuse",
 };
 
 export default function AnnotationCard({ annotation, defaultOpen = false }) {

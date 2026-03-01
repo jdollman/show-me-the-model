@@ -100,6 +100,15 @@ system_prompt: |
   }
   ```
 
+  ## Language Guidelines
+
+  - **Conciseness**: Prefer plain, direct language. Every sentence should
+    earn its place. Avoid filler phrases that restate what the reader already
+    knows from context (e.g., the section label).
+  - **Hint field quality**: Hints should be concrete and specific, not
+    generic. "Labor share decline assumed, not derived" is better than
+    "Key assumption is questionable."
+
   ## Important Instructions
 
   - When merging, produce an explanation that is *better* than either individual
