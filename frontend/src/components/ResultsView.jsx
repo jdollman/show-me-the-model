@@ -15,7 +15,7 @@ function Prose({ text }) {
   return (
     <div className="space-y-3">
       {paragraphs.map((p, i) => (
-        <p key={i} className="text-sm leading-relaxed font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+        <p key={i} className="text-sm leading-relaxed font-body" style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}>
           {p.split(/(Annotation \d+|Strength \d+)/g).map((part, j) =>
             /^(Annotation|Strength) \d+$/.test(part) ? (
               <strong key={j} style={{ color: "var(--smtm-text-primary)" }}>
@@ -165,7 +165,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
       </header>
 
       {/* Layout: sidebar + main */}
-      <div className="max-w-[1100px] mx-auto flex gap-8 px-6 pt-6 pb-20">
+      <div className="max-w-[1100px] mx-auto flex gap-8 px-3 sm:px-6 pt-6 pb-20">
         {/* Sidebar — hidden on mobile */}
         <aside className="w-[180px] shrink-0 hidden lg:block">
           <SideNav activeSection={activeSection} />
@@ -237,7 +237,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
                 </div>
                 <p
                   className="m-0 text-[15px] leading-[1.75] font-display"
-                  style={{ color: "var(--smtm-bl-text)" }}
+                  style={{ color: "var(--smtm-bl-text)", textAlign: "justify", hyphens: "auto" }}
                 >
                   {synthesis.bottom_line}
                 </p>
@@ -261,7 +261,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
                 </div>
                 <p
                   className="m-0 text-[13.5px] leading-relaxed font-body"
-                  style={{ color: "var(--smtm-text-secondary)" }}
+                  style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
                 >
                   {synthesis.central_claim_summary}
                 </p>
@@ -435,7 +435,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
                       >
                         {s.title}
                       </div>
-                      <p className="m-0 text-[13.5px] leading-relaxed font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+                      <p className="m-0 text-[13.5px] leading-relaxed font-body" style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}>
                         {s.explanation}
                       </p>
                       {s.conditionality && (

@@ -125,7 +125,7 @@ export default function AnnotationCard({ annotation, defaultOpen = false }) {
                 <p
                   key={i}
                   className="text-sm leading-relaxed font-body"
-                  style={{ color: "var(--smtm-text-secondary)" }}
+                  style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
                 >
                   {p}
                 </p>

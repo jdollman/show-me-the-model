@@ -396,6 +396,13 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Justify body text paragraphs */
+.prose-justify p {
+  text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
 /* Smooth theme transitions on key surfaces */
 .theme-transition {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
