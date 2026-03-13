@@ -70,7 +70,7 @@ export default function IssuesRow({ annotations }) {
             })
         )}
       </div>
-      <div className="flex gap-2.5 text-[11px] font-body ml-auto" style={{ color: "var(--smtm-text-muted)" }}>
+      <div className="flex gap-2.5 text-[11px] font-body sm:ml-auto" style={{ color: "var(--smtm-text-muted)" }}>
         {ORDER.map((sev) => {
           const c = counts[sev] || 0;
           if (!c) return null;

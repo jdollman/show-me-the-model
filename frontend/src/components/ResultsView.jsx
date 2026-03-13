@@ -134,19 +134,26 @@ export default function ResultsView({ result, analysisId, onReset }) {
           borderColor: "var(--smtm-border-default)",
         }}
       >
-        <div className="max-w-[1100px] mx-auto flex items-center justify-between">
-          <span
-            className="font-display font-700 text-2xl tracking-tight cursor-pointer"
-            style={{ color: "var(--smtm-title-primary)" }}
-            onClick={onReset}
-          >
-            Show Me the Model
-          </span>
+        <div className="max-w-[1100px] mx-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between">
+          <div className="flex items-center justify-between">
+            <span
+              className="font-display font-700 text-2xl tracking-tight cursor-pointer"
+              style={{ color: "var(--smtm-title-primary)" }}
+              onClick={onReset}
+            >
+              Show Me the Model
+            </span>
+            <div className="sm:hidden">
+              <ThemeSwitcher compact />
+            </div>
+          </div>
           <div className="flex items-center gap-2">
-            <ThemeSwitcher compact />
+            <div className="hidden sm:block">
+              <ThemeSwitcher compact />
+            </div>
             <button
               onClick={onReset}
-              className="px-5 py-2 rounded-lg border text-[13px] cursor-pointer font-body font-medium transition-all"
+              className="px-5 py-2 rounded-lg border text-[13px] cursor-pointer font-body font-medium transition-all w-full sm:w-auto"
               style={{
                 background: "var(--smtm-btn-secondary-bg)",
                 borderColor: "var(--smtm-btn-secondary-border)",

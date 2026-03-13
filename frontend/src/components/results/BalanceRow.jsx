@@ -2,7 +2,7 @@ import Square from "./Square";
 
 export default function BalanceRow({ strengths, contradictions }) {
   return (
-    <div className="flex items-center gap-5 flex-wrap">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 flex-wrap">
       {/* Contradictions */}
       <div className="flex items-center gap-2">
         <div className="flex items-baseline gap-1.5 min-w-[140px]">
@@ -32,7 +32,7 @@ export default function BalanceRow({ strengths, contradictions }) {
         </div>
       </div>
 
-      <div className="w-px h-6" style={{ background: "var(--smtm-divider)" }} />
+      <div className="w-px h-6 hidden sm:block" style={{ background: "var(--smtm-divider)" }} />
 
       {/* Strengths */}
       <div className="flex items-center gap-2">

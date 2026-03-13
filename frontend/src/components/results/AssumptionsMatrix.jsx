@@ -148,7 +148,7 @@ export default function AssumptionsMatrix({ assumptions }) {
               );
             })}
 
-            <span className="w-px h-3.5 mx-0.5" style={{ background: "var(--smtm-legend-divider)" }} />
+            <span className="w-px h-3.5 mx-0.5 hidden sm:inline-block" style={{ background: "var(--smtm-legend-divider)" }} />
 
             <button
               onClick={() => toggle("critical")}
