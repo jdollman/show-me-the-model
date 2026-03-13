@@ -21,13 +21,13 @@
 
 ```
 /opt/show-me-the-model/          # Git repo
-├── backend/                     # FastAPI app
-├── frontend/
-│   └── dist/                    # Built static files (served by Nginx)
-├── prompts/                     # LLM prompt YAML files
-├── results/                     # Saved analysis JSON files
-├── venv/                        # Python virtual environment
-└── .env                         # Environment variables (Resend API key, CORS)
++-- backend/                     # FastAPI app
++-- frontend/
+|   +-- dist/                    # Built static files (served by Nginx)
++-- prompts/                     # LLM prompt YAML files
++-- results/                     # Saved analysis JSON files
++-- venv/                        # Python virtual environment
++-- .env                         # Environment variables (Resend API key, CORS)
 ```
 
 ## Key Config Files on Server
