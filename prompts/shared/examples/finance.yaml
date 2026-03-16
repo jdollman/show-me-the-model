@@ -1,0 +1,172 @@
+# Field-specific examples: Financial Markets & Banking
+# For essays about financial markets, banking, credit, asset pricing, fintech.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that bank lending creates money "out
+  of thin air" with no real constraints.
+
+  ```json
+  {
+    "title": "Money Creation Still Requires Balance Sheet Constraints",
+    "quoted_passage": "Banks simply create money by typing numbers into a computer. There is no real limit on how much credit they can extend.",
+    "issue_types": ["IDENTITY_VIOLATION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "It is true that commercial banks create deposits when they make loans; this is a well-understood feature of fractional reserve banking. But the essay jumps from 'banks create deposits' to 'there are no limits on credit creation,' which ignores several binding constraints.\n\nA bank's balance sheet must balance: assets (loans) equal liabilities (deposits) plus equity. When a bank makes a loan, it creates a deposit, but it also creates a loan asset. If the borrower spends the deposit (transferring it to another bank), the lending bank loses reserves and must fund the gap, either by attracting new deposits, borrowing on the interbank market, or selling assets. These funding costs are real and rise as the bank extends more credit.\n\nCapital requirements add another constraint: regulators require banks to hold equity capital proportional to their risk-weighted assets. A bank that has lent aggressively and used up its capital buffer cannot make more loans without raising new equity, which is expensive. The essay's claim that credit creation is unlimited ignores both balance-sheet mechanics and regulatory architecture.",
+    "dig_deeper": "The endogenous money view (that loans create deposits rather than the reverse) is correct as a description of the money creation process, but it does not imply that credit is unconstrained. The Bank of England's 2014 working paper 'Money creation in the modern economy' carefully distinguishes between the process (banks create money when they lend) and the constraints (profitability, capital adequacy, monetary policy, and borrower demand). The essay cites the process correctly but ignores the constraints entirely."
+  }
+  ```
+
+  Here is a second example, about reading only one side of a balance sheet:
+
+  ```json
+  {
+    "title": "Debt Cited Without Examining the Asset It Financed",
+    "quoted_passage": "Corporate debt has reached $12 trillion, a record level that leaves American companies dangerously exposed to the next downturn.",
+    "issue_types": ["IDENTITY_VIOLATION"],
+    "severity": "Moderate",
+    "explanation": "Debt is one side of a balance sheet. When a company borrows $1 billion, the liability side goes up by $1 billion, but so does the asset side: the borrowed funds went somewhere, whether to build a factory, acquire a competitor, or fund research. Whether the debt is 'dangerous' depends on what it financed and whether those assets generate enough returns to service the liability.\n\nImagine a company that borrows $1 billion at 5% interest to build a factory that generates $200 million per year in operating income. Its debt rose, but its net worth rose too, and it can comfortably service the obligation. Now imagine a company that borrows $1 billion to buy back its own stock at a premium. Same debt, very different risk profile. The essay's headline debt figure doesn't distinguish between these cases.\n\nThe same logic applies at the national level. Government borrowing to fund productive infrastructure, education, or R&D creates assets (better transportation, more skilled workers, new technologies) whose economic returns may more than offset the fiscal cost of the debt. Borrowing to fund current consumption or tax cuts with no growth payoff is a different story. Citing the debt number alone is like reading only the right side of a balance sheet and concluding the company is in trouble without looking at what it owns.",
+    "dig_deeper": null
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that a financial innovation will
+  permanently lower the cost of credit without increasing risk.
+
+  ```json
+  {
+    "title": "Lower Credit Costs Invite More Risk-Taking",
+    "quoted_passage": "By cutting out traditional intermediaries, the new platform reduces borrowing costs by 40%, democratizing access to credit.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "MISSING_AGENT"],
+    "severity": "Moderate",
+    "explanation": "Imagine a new highway is built that cuts commute times in half. Initially, everyone benefits. But over time, people move farther from the city center because commuting is cheaper, and eventually the highway fills up. The congestion comes back, just with more cars traveling longer distances. Economists call this 'induced demand.'\n\nFinancial innovation works similarly. When borrowing becomes cheaper, the initial beneficiaries are current borrowers who refinance at lower rates. But cheaper credit also attracts new borrowers who would not have qualified or bothered at higher rates. These marginal borrowers are, by definition, riskier. Over time, the lower cost of credit induces more leverage in the system, and the risk that was supposedly eliminated reappears in a different form: more total debt, riskier borrowers, or both.\n\nThe essay focuses on the immediate benefit (lower rates for existing borrowers) without tracing the system-wide response. This partial-equilibrium analysis systematically overstates the net benefit by ignoring the risk-taking channel that cheaper credit opens up.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that rising home prices boost
+  the economy by making homeowners wealthier.
+
+  ```json
+  {
+    "title": "Rising Home Prices Are Not Pure Wealth Creation",
+    "quoted_passage": "With home values up 40% in five years, American homeowners are sitting on trillions in new wealth, powering a consumer spending boom.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "SUTVA_VIOLATION"],
+    "severity": "Moderate",
+    "explanation": "A house is both an asset (to the owner) and a cost (to anyone who needs to buy or rent housing). When home prices rise, existing homeowners gain paper wealth, but prospective buyers face higher purchase prices and renters face higher rents. The essay traces the spending boost from homeowners feeling richer without tracing the spending drag on everyone else.\n\nConsider an economy with 100 people: 60 own homes and 40 rent. When home prices rise 40%, the 60 homeowners feel wealthier and may spend more. But the 40 renters face higher housing costs and spend less on everything else. And among the homeowners, only those who are planning to sell and downsize can actually realize the gains; the rest still need a place to live, so the 'wealth' is only accessible by borrowing against it, which creates new debt.\n\nIn the aggregate, higher home prices redistribute wealth from buyers and renters to sellers and existing owners. This can change the composition of spending (homeowners buy more, renters buy less), but the net effect on total spending is much smaller than the headline 'trillions in new wealth' suggests. The essay is analyzing one side of a price change while ignoring the other.",
+    "dig_deeper": null
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay predicting that asset prices will continue
+  rising because they have risen in the past.
+
+  ```json
+  {
+    "title": "Future Returns Treated as Independent of Current Prices",
+    "quoted_passage": "With average annual returns of 10% over the past century, equities remain the best long-term investment for building wealth.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Moderate",
+    "explanation": "The essay treats historical average returns as if they are a fixed feature of the asset class, like a speed limit posted on a highway. But expected returns are an outcome that depends on, among other things, the current price level. When prices are high relative to earnings, expected future returns are lower, and vice versa. This is one of the most well-established relationships in empirical finance.\n\nImagine a house that has appreciated 10% per year for a decade. Does that mean it will continue appreciating at 10%? Only if the fundamental drivers (income growth in the area, housing supply constraints, interest rates) continue at the same pace. If the house price has already risen to reflect those expectations, future returns will be lower even if the fundamentals continue.\n\nBy citing the historical average as if it applies regardless of current valuations, the essay treats an endogenous variable (the expected return) as an exogenous constant. A more careful analysis would condition expected returns on current price-to-earnings ratios, interest rates, and other valuation metrics.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay analyzing the profitability of a leveraged
+  investment strategy at current interest rates.
+
+  ```json
+  {
+    "title": "Interest Rates Treated as Fixed While Analyzing a Rate-Moving Shock",
+    "quoted_passage": "With borrowing costs at 5%, firms can acquire assets yielding 8% and pocket the 3% spread indefinitely.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay evaluates a leveraged strategy by locking in today's interest rate and computing the spread against asset yields. But interest rates are not an external constant; they are an outcome that depends on growth expectations, inflation, fiscal policy, and central bank response. The very strategy the essay describes could contribute to the conditions that move rates against it.\n\nIf many firms pursue the same carry trade (borrow cheap, buy higher-yielding assets), the aggregate increase in borrowing demand pushes rates up, narrowing the spread. If the strategy involves acquiring assets in a specific class, the increased demand bids up asset prices and pushes yields down, also narrowing the spread. The profitable opportunity the essay identifies is self-limiting: widespread adoption erodes the conditions that make it work.\n\nMore broadly, any essay that holds rates fixed while analyzing a shock large enough to affect credit demand, inflation expectations, or central bank policy is making the same error. Interest rates are the price of borrowing, and like any price, they respond to the forces the essay is discussing. A rate-sensitive conclusion built on a fixed-rate assumption is only as reliable as the assumption that rates won't move, which is precisely the assumption most likely to fail when something interesting is happening in the economy.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay arguing that a fintech company's growth rate
+  implies it will dominate the banking industry.
+
+  ```json
+  {
+    "title": "Growth Rate Extrapolation Implies Implausible Market Share",
+    "quoted_passage": "Growing at 80% per year, the platform will process more transactions than all traditional banks combined within five years.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Moderate",
+    "explanation": "Extrapolating an 80% annual growth rate for five years implies the platform would be 19 times its current size. That might be plausible for a startup growing from a tiny base, but the essay is projecting this rate for a platform that already has significant scale.\n\nGrowth rates almost always decline as companies get larger, for straightforward reasons: the addressable market has a finite size, customer acquisition costs rise as you move past early adopters, and regulatory scrutiny increases with market share. A fintech growing at 80% from $1 billion in transactions would need to reach $19 billion in five years. The entire US payments market processes roughly $10 trillion annually. The implied trajectory would require the platform to capture a share of total transactions that would trigger regulatory intervention well before it got there.\n\nThe essay cites the current growth rate as evidence for a market-dominance conclusion, but never checks whether sustaining that rate is arithmetically compatible with the size of the market it's growing into.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that a high-growth company's stock
+  is reasonably valued despite a very high price-to-earnings ratio.
+
+  ```json
+  {
+    "title": "Valuation Implies Earnings Growth That Exceeds the Industry",
+    "quoted_passage": "At 80x earnings, the stock looks expensive on traditional metrics, but with earnings growing at 30% per year, investors will be rewarded handsomely.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Moderate",
+    "explanation": "An 80x P/E ratio implies that investors are paying for many years of rapid future earnings growth. Let's check whether the math works out. At 30% annual growth, earnings roughly double every 2.5 years and increase tenfold in about 8 years. If the company currently earns $10 billion, the essay's growth rate implies $100 billion in annual earnings by year 8.\n\nThat number needs a reality check. $100 billion in annual earnings would place the company among the most profitable enterprises in history. For most industries, it would require capturing a share of total industry profit that has no historical precedent. The entire US banking sector earns roughly $250 billion in a good year. The entire S&P 500 earns roughly $2 trillion. At $100 billion, one company would account for 5% of all profits earned by the 500 largest US companies.\n\nThe essay cites the current growth rate as justification for the valuation, but never checks whether sustaining that rate long enough to justify the price requires earnings that are implausibly large relative to the size of the market the company operates in. High growth rates from a large base inevitably slow as the company runs out of addressable market, and valuations that depend on sustained high growth from an already-large base are betting against arithmetic.",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing that a financial innovation eliminates
+  risk while also promising higher returns.
+
+  ```json
+  {
+    "title": "Eliminating Risk and Earning Higher Returns Can't Both Be True",
+    "quoted_passage": "The new structure eliminates the credit risk that plagued traditional lenders while delivering returns 3 percentage points above Treasury bonds.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Critical",
+    "explanation": "In finance, expected returns compensate investors for bearing risk. Treasury bonds pay a low return because the US government is extremely unlikely to default. Corporate bonds pay more because companies sometimes fail. The spread between the two is the price of credit risk.\n\nIf the new structure truly eliminated credit risk, its returns would converge toward the Treasury rate, because investors would no longer need compensation for bearing that risk. A 3-percentage-point spread above Treasuries implies that the market is pricing in significant risk, regardless of what the essay claims about the structure's safety.\n\nThe essay wants the structure to be both safe (no credit risk) and lucrative (300 basis points above risk-free). These claims contradict each other. Either the risk has been genuinely eliminated (in which case the excess return should disappear as the market recognizes this) or the risk has been hidden, repackaged, or shifted to someone else (in which case the return premium is compensation for real risk that the essay is not accounting for).",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay promoting an investment strategy based on
+  its strong historical track record.
+
+  ```json
+  {
+    "title": "Profitable Strategy Requires a Counterparty Willing to Lose",
+    "quoted_passage": "The strategy has returned 18% annually over the past decade, consistently outperforming the market with lower volatility.",
+    "issue_types": ["INTERNAL_CONTRADICTION", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "Every trade has two sides. If a strategy reliably earns above-market returns, someone on the other side of each trade is reliably earning below-market returns. The essay presents the strategy's track record without ever asking: who is the counterparty, and why do they keep showing up to lose?\n\nThere are only a few possible answers, and each undermines the essay's conclusion in a different way. First, the counterparty might be irrational or uninformed, but irrational counterparties tend to go broke and leave the market, so this explanation is unlikely to persist at scale. Second, the counterparty might be trading for non-profit reasons (central banks managing reserves, index funds rebalancing mechanically, insurers hedging liabilities), in which case the opportunity is real but limited in size and likely to shrink as other traders crowd in. Third, the above-market returns might be compensation for a risk that the essay is not measuring: the strategy looks great in normal times but suffers catastrophic losses in rare events that haven't occurred in the backtest period.\n\nThe essay treats the historical return as evidence that the strategy 'works' without examining which of these explanations applies. In finance, a return without a story about where it comes from is not an opportunity; it is an unidentified risk.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay about risks in the shadow banking system.
+
+  ```json
+  {
+    "strengths": [
+      {
+        "title": "Identifies Real Opacity in Non-Bank Credit Channels",
+        "quoted_passage": null,
+        "category": "legitimate_concern",
+        "explanation": "The essay correctly identifies that significant credit intermediation has migrated from regulated banks to less-regulated entities (private credit funds, fintech platforms, insurance-linked vehicles). This migration creates genuine information gaps: regulators have less visibility into leverage, maturity mismatch, and interconnections in these channels than they do in the traditional banking system.\n\nThis concern is shared by central bankers and financial stability researchers. The Financial Stability Board has repeatedly flagged non-bank financial intermediation as a source of systemic risk precisely because the monitoring infrastructure that exists for banks does not extend to these entities. The essay is raising a concern that the expert community takes seriously.",
+        "conditionality": "The concern is legitimate, but the magnitude of the risk and the likelihood of a systemic event depend on empirical details (leverage ratios, maturity mismatch, interconnections) that the essay asserts rather than demonstrates."
+      },
+      {
+        "title": "Asks Whether Innovation Reduces Risk or Redistributes It",
+        "quoted_passage": null,
+        "category": "right_question",
+        "explanation": "The essay asks a question that much popular finance writing skips entirely: does this financial innovation actually reduce total risk in the system, or does it just move risk from participants who can see it and price it to participants who cannot? This is the right question to ask about any new financial structure, and the history of finance suggests it is the most important one.\n\nSecuritization was supposed to reduce risk by spreading it across many investors. Credit default swaps were supposed to reduce risk by letting banks hedge their exposures. In both cases, the innovation did redistribute risk, but the redistribution moved risk toward participants who understood it less well, creating concentrations of exposure that were invisible until a crisis revealed them. The essay is engaging with this pattern rather than assuming innovation is either purely beneficial (the naive efficiency view) or purely dangerous (the naive complexity view).\n\nThe question deserves a more rigorous answer than the essay provides, with specific attention to who ends up holding the risk, whether they understand and can bear it, and whether the redistribution creates new correlations or concentrations. But asking the question clearly is itself a contribution.",
+        "conditionality": null
+      }
+    ]
+  }
+  ```

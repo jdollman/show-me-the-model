@@ -29,8 +29,6 @@ const ISSUE_TYPE_LABELS = {
   EXOG_ENDO_CONFUSION: "Exog/Endo Confusion",
   MISSING_AGENT: "Missing Agent",
   MISSING_MECHANISM: "Missing Mechanism",
-  LUCAS_CRITIQUE: "Lucas Critique",
-  EQUILIBRIUM_MISUSE: "Equilibrium Misuse",
 };
 
 export default function AnnotationCard({ annotation, defaultOpen = false }) {
@@ -40,7 +38,10 @@ export default function AnnotationCard({ annotation, defaultOpen = false }) {
     title,
     severity,
     issue_types,
+    claim_ids,
+    chunk_indices,
     quoted_passage,
+    dominant_issue,
     explanation,
     dig_deeper,
     source_passes,
@@ -106,6 +107,18 @@ export default function AnnotationCard({ annotation, defaultOpen = false }) {
 
       {open && (
         <div className="px-4 pb-4 ml-[50px] space-y-3.5">
+          {dominant_issue && (
+            <div
+              className="rounded-md px-3 py-2.5 text-[13px] leading-relaxed font-body"
+              style={{
+                background: "var(--smtm-bg-surface-raised)",
+                color: "var(--smtm-text-primary)",
+              }}
+            >
+              {dominant_issue}
+            </div>
+          )}
+
           {quoted_passage && (
             <blockquote
               className="m-0 px-4 py-3 rounded-r-md italic text-[13.5px] leading-relaxed font-display"
@@ -158,9 +171,9 @@ export default function AnnotationCard({ annotation, defaultOpen = false }) {
             </details>
           )}
 
-          {source_passes?.length > 0 && (
+          {(source_passes?.length > 0 || claim_ids?.length > 0 || chunk_indices?.length > 0) && (
             <div className="flex gap-1.5 flex-wrap">
-              {source_passes.map((s) => (
+              {(source_passes || []).map((s) => (
                 <span
                   key={s}
                   className="text-[11px] px-2 py-0.5 rounded font-body"
@@ -170,6 +183,30 @@ export default function AnnotationCard({ annotation, defaultOpen = false }) {
                   }}
                 >
                   {s}
+                </span>
+              ))}
+              {claim_ids?.map((id) => (
+                <span
+                  key={id}
+                  className="text-[11px] px-2 py-0.5 rounded font-body"
+                  style={{
+                    background: "var(--smtm-issue-pill-bg)",
+                    color: "var(--smtm-issue-pill-text)",
+                  }}
+                >
+                  {`Claim ${id}`}
+                </span>
+              ))}
+              {chunk_indices?.map((idx) => (
+                <span
+                  key={`chunk-${idx}`}
+                  className="text-[11px] px-2 py-0.5 rounded font-body"
+                  style={{
+                    background: "var(--smtm-bg-surface-raised)",
+                    color: "var(--smtm-text-muted)",
+                  }}
+                >
+                  chunk {idx}
                 </span>
               ))}
             </div>

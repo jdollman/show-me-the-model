@@ -14,7 +14,7 @@ from pathlib import Path
 from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 
-from backend.prompt_loader import load_and_render
+from backend.prompt_loader import load_and_render, load_field_examples
 
 logger = logging.getLogger(__name__)
 
@@ -340,14 +340,18 @@ async def _run_single_pass(
     pass_name: str,
     source_text: str,
     decomposition_json: str,
+    field_examples: dict[str, str] | None = None,
 ) -> tuple[str, dict]:
     """Run a single Stage 2 analysis pass. Returns (pass_name, result_dict)."""
     logger.info(f"Stage 2: {pass_name}")
-    prompt = load_and_render(
-        yaml_file,
+    runtime_vars = dict(
         source_text=source_text,
         decomposition=decomposition_json,
     )
+    # Inject field-specific examples if available
+    if field_examples:
+        runtime_vars.update(field_examples)
+    prompt = load_and_render(yaml_file, **runtime_vars)
     raw = await _call_model(
         client,
         provider,
@@ -378,6 +382,11 @@ async def run_stage2(
     logger.info("Stage 2: Parallel analysis passes")
     decomposition_json = json.dumps(decomposition, indent=2)
 
+    # Load field-specific examples based on stage 1 classification
+    field = decomposition.get("field", "macro_fiscal")
+    field_examples = load_field_examples(field)
+    logger.info(f"  Field classification: {field}")
+
     results = {}
     for i in range(0, len(STAGE2_PASSES), batch_size):
         batch = STAGE2_PASSES[i:i + batch_size]
@@ -385,7 +394,10 @@ async def run_stage2(
             logger.info(f"  Rate limit pause ({batch_delay}s)...")
             await asyncio.sleep(batch_delay)
         tasks = [
-            _run_single_pass(client, provider, yaml_file, name, source_text, decomposition_json)
+            _run_single_pass(
+                client, provider, yaml_file, name,
+                source_text, decomposition_json, field_examples,
+            )
             for yaml_file, name in batch
         ]
         batch_results = await asyncio.gather(*tasks)

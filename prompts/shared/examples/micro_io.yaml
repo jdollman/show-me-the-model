@@ -1,0 +1,188 @@
+# Field-specific examples: Microeconomics & Industrial Organization
+# For essays about pricing, market structure, competition, firm strategy, IO.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that rising input costs will let
+  the market leader charge higher margins and dominate the industry.
+
+  ```json
+  {
+    "title": "Higher Demand Does Not Automatically Mean Higher Margins",
+    "quoted_passage": "As costs rise across the board, customers flock to the premium provider, allowing it to charge even higher margins.",
+    "issue_types": ["IDENTITY_VIOLATION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "Imagine you run a restaurant and the price of ingredients doubles. More customers start coming to your restaurant because if they're going to pay a lot for a meal, they want the best one. Does that mean your profit margin goes up? Not necessarily. Your costs also doubled. Whether your margin rises depends on whether you can raise your menu prices by more than your ingredient costs went up, and that depends on how sensitive your customers are to price.\n\nProfit margin is revenue minus cost, divided by revenue. A demand shift toward your product tells you something about the revenue numerator, but the cost denominator moved too. The essay treats a shift in demand as if it automatically translates to higher margins, but that skips the crucial arithmetic: the same cost shock that shifts demand toward premium providers also raises those providers' costs. To show margins rise, you would need to show that the demand shift lets providers raise prices by more than their costs increased. The essay never does that calculation.",
+    "dig_deeper": "Formally, if a cost shock raises marginal cost by delta_c and shifts demand so that the firm can raise price by delta_p, the margin change depends on the sign of (delta_p - delta_c). The essay establishes a story for why delta_p might be positive (Alchian-Allen style demand rotation), but never addresses delta_c. In a Bertrand framework with differentiated products, a common cost increase typically raises all prices but compresses markups unless the demand rotation is large enough to more than offset the cost pass-through. The conditions under which this happens are specific and empirically testable, not automatic."
+  }
+  ```
+
+  Here is a second example, from an essay arguing that a platform will achieve
+  durable monopoly through scale:
+
+  ```json
+  {
+    "title": "Market Dominance Asserted Without Entry Barriers",
+    "quoted_passage": "Once you're the biggest platform, no competitor can match your scale, and the market tips permanently in your favor.",
+    "issue_types": ["MISSING_MECHANISM", "IDENTITY_VIOLATION"],
+    "severity": "Critical",
+    "explanation": "Imagine a very successful lemonade stand. It has the most customers in the neighborhood. Does that mean no one else can ever open a competing stand? Only if there's something that prevents entry: maybe the stand owner has an exclusive permit, or the ingredients are impossible to source, or customers are locked in by some switching cost. Without one of those mechanisms, high profits simply attract competitors who chip away at the advantage.\n\nThe essay claims that being the biggest platform leads to permanent dominance, but doesn't identify what prevents entry or competition. In economics, durable market power requires specific structural barriers: network effects (where the product gets better with more users), high switching costs (where leaving is expensive), control of a scarce input, or regulatory protection. Simply being large is not enough; history is full of dominant firms that lost their position when conditions changed. The essay needs to show which specific barrier applies and why it persists, not just assert that scale equals permanence.",
+    "dig_deeper": null
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that a dominant tech firm can raise
+  prices indefinitely because it has the best product.
+
+  ```json
+  {
+    "title": "Pricing Power Ignores Competitive Response",
+    "quoted_passage": "With the best product on the market, the leading firm can simply raise prices, and customers will pay because they have no comparable alternative.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "MISSING_AGENT"],
+    "severity": "Critical",
+    "explanation": "Imagine a phone manufacturer doubles its price because it currently has the best camera. What happens next? Rival manufacturers invest more in their cameras. New entrants see an opportunity in the gap between the leader's quality and its now-higher price. Some customers decide the old model was good enough and stop upgrading. Others switch to a competitor that's 90% as good at half the price.\n\nThe essay analyzes the leader's pricing decision as if it happens in isolation, holding competitors' products, prices, and R&D investments fixed. But a large price increase is exactly the kind of shock that provokes a competitive response. The higher the leader's price, the more attractive it becomes for rivals to close the quality gap, and the more customers are willing to accept a slightly inferior product. In most markets, this competitive feedback is the dominant force shaping prices over anything longer than a quarter or two.\n\nThis matters because the essay's market-structure conclusions depend on pricing power persisting over time. If competitive response erodes that power, the winner-take-all prediction weakens considerably.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that a cost shock will benefit only
+  the premium provider in a market.
+
+  ```json
+  {
+    "title": "Cost Shock Creates Winners Among Efficient Providers Too",
+    "quoted_passage": "When costs rise, customers who are going to pay anyway will pay for the best, concentrating the market at the top.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "SUTVA_VIOLATION"],
+    "severity": "Moderate",
+    "explanation": "The essay traces what happens to one type of customer (the quality-focused buyer) and one type of provider (the premium leader), but ignores other segments that respond differently to the same shock.\n\nWhen input costs rise across an industry, not all customers respond by trading up. Many respond by trading down or reducing usage. A business that was using a premium service for routine tasks may switch to a cheaper alternative to control costs. Budget-conscious segments may exit the market entirely or find substitutes. Meanwhile, providers that have invested in efficiency rather than raw quality become relatively more attractive, because their cost advantage widens.\n\nThe essay's story about premium concentration may hold in one segment of the market, but the same cost shock simultaneously strengthens efficient competitors in other segments. The net effect on market structure depends on which response dominates, and that's an empirical question the essay doesn't address.",
+    "dig_deeper": null
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay arguing that a technology platform will achieve
+  winner-take-all status because it currently has the most users.
+
+  ```json
+  {
+    "title": "Market Dominance Is an Outcome, Not a Given",
+    "quoted_passage": "The platform with the most users today will inevitably capture the entire market, because everyone wants to be where everyone else is.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay treats the current leader's dominant position as a starting condition and then asks what follows. But the leader's market share is itself an outcome, one that depends on pricing, product quality, competitive dynamics, and user preferences. Treating it as fixed is treating a conclusion as a premise.\n\nAn economist would ask: under what conditions does the current leader maintain or extend its share? Network effects can create tipping points, but they can also work in reverse if a rival reaches critical mass in a niche. Multi-homing (users participating on multiple platforms simultaneously) weakens winner-take-all dynamics. And the strength of network effects varies enormously: they are powerful in social networks and payment systems, but much weaker in markets where users primarily care about the product's standalone quality.\n\nBy assuming dominance persists rather than deriving the conditions under which it would, the essay skips the most important analytical step. Whether the market tips, fragments, or stabilizes with several players depends on parameters (switching costs, multi-homing costs, the strength of direct vs. indirect network effects) that the essay never examines.",
+    "dig_deeper": "In the formal IO literature, tipping depends on the relationship between network-effect strength and user heterogeneity. If users have sufficiently diverse preferences over non-network features (price, design, privacy), the market can sustain multiple platforms even with strong network effects. The classic result (e.g., Armstrong 2006) shows that multi-homing on one side of a platform market can completely eliminate tipping on the other side. Whether winner-take-all obtains is a function of these structural parameters, not a foregone conclusion from current market share."
+  }
+  ```
+
+  **Source text context:** An essay arguing that users will always prefer the
+  most powerful product in a category.
+
+  ```json
+  {
+    "title": "Consumer Preferences Treated as Fixed While the Product Landscape Changes",
+    "quoted_passage": "Users want the best model, period. No one is going to settle for second-best when the stakes are high.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Moderate",
+    "explanation": "The essay assumes that customers have a fixed preference for 'the best' and then builds market-structure predictions on that assumption. But what users want is itself an outcome that shifts in response to prices, available alternatives, and experience with the product.\n\nConsider smartphones. Early adopters cared intensely about having the best camera, the fastest processor, the biggest screen. But as the technology matured and the gaps between models narrowed, buying behavior shifted. Most consumers now optimize on price, battery life, ecosystem compatibility, or simply keep their old phone longer. The preference for 'the best' was not a fixed feature of the market; it was a phase that reflected large quality gaps and early-adopter demographics.\n\nThe same pattern plays out in most technology markets. When the product is new and quality varies widely, users gravitate toward the frontier. As the category matures and quality becomes 'good enough' for most tasks, preferences fragment: some users want cheap, some want fast, some want private, some want specialized. By treating the current 'users want the best' preference as permanent, the essay builds its market-structure prediction on a foundation that is likely to shift beneath it.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay analyzing competition within a fixed
+  market boundary.
+
+  ```json
+  {
+    "title": "Market Definition Treated as Fixed While Analyzing Forces That Would Change It",
+    "quoted_passage": "In the AI model market, the best provider will capture the lion's share of spending as costs rise.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay defines 'the AI model market' as the arena of competition and then analyzes who wins within that arena. But the boundary of the market is itself endogenous to the forces the essay describes. If premium AI models become much more expensive, the relevant question is not just 'which model wins?' but 'do customers keep buying from this market at all?'\n\nWhen prices rise in any market, some customers substitute to alternatives outside the market as originally defined. Businesses might switch from API-based AI models to open-source models they run themselves, to fine-tuned smaller models that cost a fraction per query, or to non-AI solutions entirely (hiring people, using rule-based systems, simplifying the task). Each of these substitutions shrinks the market the essay is analyzing.\n\nThis matters because the essay's concentration prediction depends on the market staying the same size or growing while demand shifts toward the top. If rising costs simultaneously push marginal customers out of the market, the 'winner' may be capturing a larger share of a shrinking pie. In antitrust economics, getting the market definition right is often the most consequential step in the entire analysis, precisely because it determines which substitution patterns count. The essay skips this step entirely by treating the market boundary as given.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay arguing that a pricing effect will transform
+  an entire industry's structure.
+
+  ```json
+  {
+    "title": "Small Price Effect Scaled to Industry-Transforming Conclusion",
+    "quoted_passage": "Because the premium product becomes relatively more attractive, the entire market will consolidate around a single provider.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "The essay identifies a real pricing mechanism (a cost shock can shift relative attractiveness) but never quantifies how large the effect would be. Let's work through the arithmetic with plausible numbers.\n\nSuppose a budget product costs $10/use and a premium product costs $15/use. A cost shock adds $2 to both. The budget product is now $12 and the premium is $17. The ratio of premium to budget price went from 1.5x to 1.42x, a 5% narrowing of the relative price gap. That's real but modest. Would a 5% change in relative pricing cause 'the entire market to consolidate around a single provider'? In most markets, that's far too small to overcome switching costs, brand preferences, feature differences, and the sheer inertia of existing contracts.\n\nFor the essay's conclusion to hold, either the cost shock would need to be enormous relative to the base prices, or demand would need to be extraordinarily sensitive to small changes in relative price. The essay asserts neither and provides no numbers to check against.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that revenue concentration proves
+  a firm has monopoly-like profitability.
+
+  ```json
+  {
+    "title": "Revenue Concentration Does Not Mean Profit Concentration",
+    "quoted_passage": "The leading provider captures over 60% of industry revenue, demonstrating the kind of dominant market position that lets it extract outsized profits.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "Revenue share and profit share are different numbers, and the gap between them can be enormous. The essay treats a 60% revenue share as evidence of 'outsized profits,' but revenue is the top line, not the bottom line. Whether that revenue translates to high margins depends on the cost structure, which the essay never examines.\n\nConsider airlines: the largest carriers capture a dominant share of industry revenue, but airline profit margins are notoriously thin (typically 5-10% in good years) because the costs of fuel, labor, aircraft, and airport fees are nearly as large as the revenue. In cloud computing, the top providers have massive revenue but also massive capital expenditure on data centers. In grocery retail, Walmart has enormous revenue share but operates on margins of 2-3%.\n\nTo make a claim about profitability, you need to see costs, not just revenue. A firm can have high revenue share because it operates at the largest scale with the thinnest margins, undercutting competitors on price. That is the opposite of the 'extracting outsized profits' story. The essay is using the wrong metric to support its conclusion, and the right metric (profit margins or return on invested capital) might tell a very different story.",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing that rising costs will simultaneously
+  drive customers to premium products AND create winner-take-all dynamics.
+
+  ```json
+  {
+    "title": "Premium Shift Undermines Winner-Take-All Mechanism",
+    "quoted_passage": "Higher costs push users toward the best product, and the best product captures the entire market.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Moderate",
+    "explanation": "The essay makes two claims that sit uncomfortably together. First, it argues that rising costs make customers more discerning, more willing to pay for quality. Second, it argues that this discernment leads to winner-take-all, where a single provider dominates.\n\nBut discerning customers are precisely the ones who resist lock-in. If customers are carefully evaluating quality-per-dollar and willing to switch to the best option, they will also switch away if a competitor offers better value. The same price-sensitivity that drives them toward today's best product should make them responsive to tomorrow's challenger. Discerning buyers create contestable markets, not locked-in ones.\n\nFor winner-take-all to emerge from discerning buyers, you would need an additional mechanism: network effects that make the leading product inherently better because it has more users, or switching costs that trap customers once they've chosen. The essay doesn't identify either. Instead, it conflates 'customers choose the best product right now' with 'customers are permanently captured by the current leader,' which are very different claims.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that a firm's scale advantages
+  produce both lower costs and higher profit margins.
+
+  ```json
+  {
+    "title": "Scale Can't Simultaneously Be a Moat and a Profit Engine",
+    "quoted_passage": "The leader's massive scale drives costs far below competitors, allowing it to earn the highest margins in the industry while remaining untouchable on price.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Moderate",
+    "explanation": "The essay makes two claims about scale that work against each other. First, scale gives the leader lower costs than competitors, making it 'untouchable on price.' Second, these lower costs translate into the highest margins in the industry.\n\nBut the mechanism that makes scale a competitive moat is the ability to undercut rivals on price. If the leader charges prices close to its own (low) costs, competitors with higher costs cannot match it, and the moat holds. But then margins are thin, because prices are close to costs. Alternatively, if the leader charges high prices to enjoy fat margins, it creates a price umbrella under which higher-cost competitors can operate profitably, weakening the moat.\n\nYou can have 'scale lets us charge less than anyone else' (the moat story) or 'scale lets us keep fat margins' (the profit story), but sustaining both requires explaining what prevents competitive pressure from forcing the firm to pass its cost savings through to customers. In most markets, that requires some additional barrier: switching costs, network effects, or contractual lock-in. Scale alone doesn't do it, because a firm that tries to maintain both low costs and high margins is leaving money on the table that invites entry.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay about how cost structures affect competition
+  in a technology market.
+
+  ```json
+  {
+    "strengths": [
+      {
+        "title": "Correctly Identifies That Cost Shocks Affect Relative, Not Just Absolute, Prices",
+        "quoted_passage": null,
+        "category": "underappreciated_insight",
+        "explanation": "Most popular discussion of rising costs focuses on absolute price levels: everything gets more expensive, everyone suffers equally. The essay correctly identifies that uniform cost increases change relative prices between high- and low-quality options, which can shift demand patterns in non-obvious ways. This is a genuine economic insight rooted in standard price theory, and it pushes the reader to think about second-order effects rather than just first-order pain.\n\nThe insight is valuable even though the essay misapplies it in the specific case. The general principle, that cost shocks can reshape competitive dynamics through relative price channels, is real and underappreciated in popular writing.",
+        "conditionality": "The specific application depends on whether the cost shock is truly uniform across products, which is the key empirical question the essay doesn't adequately address."
+      },
+      {
+        "title": "Asks a Real Question About Market Structure Under Scarcity",
+        "quoted_passage": null,
+        "category": "right_question",
+        "explanation": "The essay asks whether input scarcity strengthens or weakens market leaders. This is a genuinely interesting question that standard competitive analysis sometimes glosses over. In many industries, the conventional wisdom is that cost increases squeeze everyone equally, but the essay is right to push back on that assumption. Scarcity can change competitive dynamics in ways that simple cost-plus reasoning misses.\n\nThe question deserves careful treatment with the tools of industrial organization: entry analysis, demand estimation, and explicit modeling of competitive responses. That the essay's answer is incomplete doesn't diminish the value of asking the question clearly.",
+        "conditionality": null
+      }
+    ]
+  }
+  ```

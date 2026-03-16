@@ -1,0 +1,187 @@
+# Field-specific examples: International Trade
+# For essays about tariffs, exchange rates, balance of payments, trade agreements.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that tariffs can eliminate the trade deficit.
+
+  ```json
+  {
+    "title": "Tariffs Can't Close the Trade Deficit",
+    "quoted_passage": "Establish a uniform Global Tariff on all imports, set initially at 10% and adjusted automatically each year based on the trade deficit.",
+    "issue_types": ["IDENTITY_VIOLATION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The belief that tariffs can eliminate the trade deficit by making imports more expensive sounds intuitive, but it doesn't survive contact with basic macroeconomic accounting.\n\nThe trade balance is governed by the identity: current account = national saving minus investment (CA = S - I). For the trade deficit to shrink, either saving must rise or investment must fall (or both). Tariffs don't directly change either one. They change the composition of trade, what you import and export, but not the balance, unless they happen to shift saving or investment.\n\nIn fact, the most likely macroeconomic effect of a broad tariff is to appreciate the real exchange rate, which makes exports less competitive and partially offsets the reduction in imports. This is a well-established result in international macro and has been observed in practice: recent tariff episodes did not reduce the overall trade deficit.",
+    "dig_deeper": "The S - I identity isn't just an accounting curiosity. It reflects a fundamental constraint. If Americans collectively save less than they invest, the difference must be financed by borrowing from abroad, which is the trade deficit. Unless tariffs cause Americans to save more (they don't; by raising prices, they likely reduce real income and saving) or invest less (possible, but that defeats the stated goal of boosting domestic industry), the deficit won't budge. The composition of trade shifts, maybe fewer imported consumer goods, more imported intermediates or capital goods, but the aggregate gap persists."
+  }
+  ```
+
+  Here is a second example, from an essay claiming that bilateral trade deficits
+  measure economic harm:
+
+  ```json
+  {
+    "title": "Bilateral Deficits Don't Measure What the Essay Claims",
+    "quoted_passage": "Our $300 billion deficit with China proves that the trade relationship is fundamentally unfair and costs American jobs.",
+    "issue_types": ["IDENTITY_VIOLATION", "COMPOSITION_FALLACY"],
+    "severity": "Moderate",
+    "explanation": "Imagine you buy groceries from one store and earn your salary from a different employer. You have a huge 'trade deficit' with the grocery store and a huge 'surplus' with your employer. Does the deficit with the grocery store mean the relationship is unfair? Obviously not; you're getting food in return.\n\nBilateral trade balances work the same way. The US runs a deficit with China partly because China specializes in assembling final goods from components made elsewhere. A phone 'imported from China' may contain chips from Taiwan, screens from South Korea, and software from the US. The bilateral deficit overstates China's share of the value added and understates how much of the spending flows back to other countries (and to the US itself through component exports).\n\nThe distinction between gross and value-added trade matters here. In the aggregate, the trade balance is the same whether you measure it in conventional gross terms or in value-added terms; the accounting identities hold either way. But for an individual bilateral relationship, the two can diverge sharply. The US-China gross trade deficit is much larger than the US-China value-added deficit, because a large share of what China exports to the US consists of value added in other countries that was assembled in China. The essay treats the gross bilateral number as if it measures the economic substance of the relationship, but the value-added number is a better guide to who is actually producing what.\n\nThe aggregate trade balance (with all countries combined) is governed by the saving-investment identity. Reducing the bilateral deficit with China, through tariffs or other barriers, tends to redirect the deficit to other countries rather than reduce it, because the underlying saving-investment gap hasn't changed.",
+    "dig_deeper": null
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that cheap imports harm American workers,
+  framing imports as finished consumer goods that displace domestic production.
+
+  ```json
+  {
+    "title": "Imports Aren't Just Consumer Goods",
+    "quoted_passage": "That's why the simplistic claim that Americans 'win' by getting cheap T-shirts from Bangladesh or cheap cars from China misses the point.",
+    "issue_types": ["COMPOSITION_FALLACY", "MISSING_AGENT"],
+    "severity": "Critical",
+    "explanation": "The essay frames imports as finished consumer goods, T-shirts, cars, that compete with and displace domestic production. But a large and growing share of US imports are intermediate inputs: raw materials, components, machinery, and other goods that American firms use to produce their own products.\n\nWhen these inputs get cheaper, the cost of production for domestic firms falls. A car manufacturer that imports cheaper steel and semiconductors can produce more cars at lower cost, employ more workers, and sell at lower prices both at home and abroad. This runs directly counter to the essay's narrative that imports displace domestic production; cheaper imported inputs actually boost it.\n\nBy treating 'imports' as a monolithic category of finished goods, the essay misses the channel through which cheaper imports make American manufacturers more competitive. This isn't a minor omission: intermediate goods are a larger share of US imports than consumer goods.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that tariffs will bring manufacturing
+  jobs back.
+
+  ```json
+  {
+    "title": "Tariff Protection Ignores Exchange Rate Response",
+    "quoted_passage": "A 25% tariff on Chinese goods will make American-made products competitive again, bringing factories and jobs back to the heartland.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
+    "severity": "Critical",
+    "explanation": "The essay traces what happens to import prices when tariffs are imposed, but holds the exchange rate fixed. In reality, tariffs that reduce imports also reduce the supply of dollars on foreign exchange markets (fewer dollars being spent on foreign goods). This pushes the dollar's value up, which makes all US exports more expensive to foreign buyers.\n\nA stronger dollar partially undoes the tariff's protective effect: American-made goods become more expensive abroad, hurting export-oriented manufacturers even as the tariff helps import-competing ones. The net effect on total manufacturing employment is ambiguous, not the clear positive the essay claims. Some factories gain protection, but others lose export competitiveness.\n\nThis exchange rate channel is not a theoretical curiosity. It is the primary mechanism through which the economy absorbs trade shocks, and ignoring it leads to systematically overestimating the benefits of tariff protection.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay projecting tariff revenue by applying the
+  new rate to current import volumes.
+
+  ```json
+  {
+    "title": "Tariff Revenue Projection Ignores Import Decline",
+    "quoted_passage": "A 25% tariff on $500 billion in imports would generate $125 billion in annual revenue for the Treasury.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
+    "severity": "Moderate",
+    "explanation": "The essay calculates tariff revenue by multiplying the tariff rate by current import volumes: 25% times $500 billion equals $125 billion. But the entire point of a tariff is to discourage imports. If the tariff works as intended, import volumes fall, and the revenue base shrinks.\n\nHow much imports fall depends on how sensitive buyers are to price, but the direction is unambiguous: higher prices mean fewer purchases. If imports fall by 30% in response to the tariff, the revenue base drops to $350 billion and actual revenue is $87.5 billion, not $125 billion. If the tariff is high enough to be truly prohibitive, imports could fall so far that revenue is close to zero. This is the logic behind the Laffer curve applied to trade: beyond some point, a higher tariff rate produces less revenue, not more.\n\nThe essay holds import volumes fixed while changing the price, which is the textbook partial-equilibrium error. Any revenue projection needs to account for the behavioral response to the price change, and the gap between the static and dynamic estimates can be large.",
+    "dig_deeper": null
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay arguing that a country's trade deficit is
+  caused by foreign currency manipulation.
+
+  ```json
+  {
+    "title": "The Trade Deficit Is Treated as Externally Imposed",
+    "quoted_passage": "China deliberately undervalues its currency, forcing the US into a persistent trade deficit that drains American wealth.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay treats the US trade deficit as something imposed on America by a foreign actor's currency policy. But the trade deficit is an outcome of domestic economic forces, specifically the gap between what Americans save and what Americans invest.\n\nAn economist would ask: why does the US consume more than it produces? The answer involves domestic factors: low household saving rates, large fiscal deficits, and strong investment demand fueled by deep capital markets. Even if China stopped any currency intervention, the US would still run a trade deficit of roughly the same size, because the underlying saving-investment gap would still be there. The deficit might shift to other trading partners, but the aggregate wouldn't change much.\n\nBy treating the deficit as exogenously imposed by foreign policy, the essay skips the question of why American saving is low relative to investment. That's where the real economics lies, and it points toward domestic causes (fiscal policy, household credit access, demographics) rather than foreign villains.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that trade policy can restore
+  manufacturing employment to its mid-20th century levels.
+
+  ```json
+  {
+    "title": "The 1950s Manufacturing Economy Is Treated as a Natural Baseline",
+    "quoted_passage": "Before free trade agreements gutted American industry, nearly one in three workers had a good manufacturing job. The right trade policy can bring that back.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Critical",
+    "explanation": "The essay treats the historical structure of the US economy, roughly 30% of employment in manufacturing, as a natural baseline that was disrupted by trade liberalization. But that employment share was itself an outcome of conditions that no longer hold: lower productivity growth in manufacturing (before automation accelerated), a much smaller services sector, lower female labor force participation, and consumer spending patterns that allocated a larger share of income to physical goods.\n\nThe long-run decline in manufacturing's employment share has been driven primarily by productivity growth within manufacturing, not by trade. Factories produce far more output today than in 1955, but they do it with fewer workers because of automation, robotics, and process improvements. This pattern holds even in countries with large trade surpluses in manufactured goods: Germany, Japan, and South Korea have all seen manufacturing employment shares fall for the same reason.\n\nBy treating the 1950s share as a baseline to be restored, the essay assumes that the only thing standing between the current economy and 30% manufacturing employment is trade policy. But even with no imports at all, the productivity gains of the past 70 years mean that producing the same output requires a fraction of the workers. Trade policy can shift some jobs between sectors, but it cannot undo the technological changes that made manufacturing less labor-intensive. The essay is trying to reverse an endogenous structural transformation with a tool that addresses a different problem.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay claiming tariffs will create millions of
+  manufacturing jobs.
+
+  ```json
+  {
+    "title": "Implied Job Creation Requires Implausible Labor Shift",
+    "quoted_passage": "Reshoring our supply chains would create at least 5 million new manufacturing jobs within a decade.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Critical",
+    "explanation": "US manufacturing currently employs about 13 million workers. Adding 5 million would represent a 38% increase, reversing several decades of trend decline. To put that in context, US manufacturing employment peaked at about 19 million in 1979 and has been falling since, driven primarily by automation rather than trade.\n\nFor 5 million new manufacturing jobs to materialize, workers would need to come from somewhere: other sectors, the unemployed, or new labor force entrants. With unemployment currently below 4%, the slack simply isn't there. Pulling 5 million workers into manufacturing would create severe labor shortages in services, construction, and other sectors, driving up wages economy-wide and raising manufacturing costs, which partially undermines the competitiveness gains the tariffs were supposed to create.\n\nThe essay never works through these magnitudes. A more realistic estimate, based on the empirical trade literature, suggests tariff-driven reshoring would create hundreds of thousands of manufacturing jobs, not millions, and a significant fraction of those gains would be offset by job losses in export-oriented and service sectors.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay citing the goods trade deficit as evidence
+  of American economic decline.
+
+  ```json
+  {
+    "title": "Goods-Only Deficit Ignores Large US Services Surplus",
+    "quoted_passage": "America's trade deficit exceeded $1 trillion last year, proving that we are losing the economic competition with the rest of the world.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "The $1 trillion figure is the goods trade deficit. It is a real number, but it is not the trade deficit. The US runs a large and growing surplus in services trade: finance, insurance, intellectual property licensing, cloud computing, consulting, education, and entertainment. This surplus typically runs in the range of $250-300 billion per year, which reduces the overall trade deficit by roughly a quarter compared to the goods-only number.\n\nThis matters because the services surplus reflects exactly the kind of economic strength the essay claims America lacks. The US dominates global trade in high-value services precisely because of its advantages in technology, higher education, financial infrastructure, and intellectual property. Omitting services from the picture systematically overstates the trade imbalance and understates American competitiveness in the sectors where the economy has shifted.\n\nA complete assessment would report the current account balance (goods plus services plus income flows), which gives a materially different picture than the goods deficit alone. Using only the goods number is like evaluating a law firm's finances by counting only its office supply expenses and ignoring its billing revenue.",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing that tariffs both protect domestic
+  industry and reduce consumer prices.
+
+  ```json
+  {
+    "title": "Protection and Lower Prices Can't Both Be True",
+    "quoted_passage": "American tariffs will protect domestic producers while keeping prices low for consumers through increased competition.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Critical",
+    "explanation": "The essay promises two things that cannot both be true. Tariffs protect domestic producers precisely by raising the price of competing imports. If import prices don't rise, there's no protection: domestic producers still face the same competitive pressure from cheaper foreign goods. But if import prices do rise, consumers pay more.\n\nYou can have protection (higher import prices that shield domestic firms) or you can have low consumer prices, but you cannot have both from the same tariff. The mechanism that delivers one is the mechanism that prevents the other. This is not a matter of degree or trade-off; it's a logical contradiction in the essay's own framework.\n\nThe essay appears to want the benefits of protectionism (more domestic production and employment) without the costs (higher prices for consumers). Any serious trade policy analysis acknowledges this trade-off rather than assuming it away.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay that laments the trade deficit while
+  celebrating foreign investment in the US economy.
+
+  ```json
+  {
+    "title": "Can't Shrink the Trade Deficit and Keep Foreign Investment",
+    "quoted_passage": "Our trillion-dollar trade deficit is draining American wealth... At the same time, we should welcome the billions in foreign investment flowing into American factories, real estate, and Treasury bonds.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Critical",
+    "explanation": "The essay treats the trade deficit and foreign investment as separate phenomena, one bad and one good. But they are two sides of the same accounting entry. When the US runs a trade deficit, dollars flow out to pay for imports. Those dollars come back as foreign investment in US assets: factories, real estate, Treasury bonds, equities. The current account deficit (trade) and the capital account surplus (investment inflows) are mirror images that must sum to zero.\n\nThis means you cannot reduce the trade deficit without also reducing foreign capital inflows by the same amount. If the US succeeded in eliminating its trade deficit, foreigners would no longer be accumulating dollars to invest in the US. The 'billions in foreign investment' the essay celebrates would dry up. If the essay wants more foreign investment, it should welcome the trade deficit that makes it possible.\n\nThe essay is asking for an outcome that violates the balance of payments identity: a smaller current account deficit with an unchanged or larger capital account surplus. The two must move together. Wanting to fix the trade deficit while keeping foreign investment is like wanting to lose weight while eating more; the accounting doesn't allow it.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay arguing for industrial policy and trade
+  protection to support strategic industries.
+
+  ```json
+  {
+    "strengths": [
+      {
+        "title": "Correctly Identifies Adjustment Costs as a Real Concern",
+        "quoted_passage": null,
+        "category": "legitimate_concern",
+        "explanation": "Standard trade theory shows that free trade increases aggregate welfare, but it also predicts that the gains are unevenly distributed and that some workers and communities bear concentrated losses. The essay is right to emphasize that these adjustment costs are real, large, and politically important. The economics profession has sometimes been too quick to dismiss distributional concerns by pointing to aggregate gains.\n\nThe 'China shock' literature (Autor, Dorn, and Hanson) is often cited as showing that trade with China cost millions of American jobs. But the real contribution of that research is different and more important. The empirical design compares regions with different levels of exposure to Chinese import competition; by construction, it identifies relative effects across regions, not aggregate job losses for the economy as a whole (since workers and spending displaced from one region may flow to another). The original authors made aggregate extrapolations that went beyond what their research design could support, and those headline numbers have been widely repeated. What the research does convincingly establish is that adjustment costs were far larger, more persistent, and more geographically concentrated than standard models predicted. Workers in heavily exposed communities experienced earnings losses lasting more than a decade, with limited mobility to less-affected areas. That finding, about the severity of adjustment, is what matters for policy, and the essay captures it.",
+        "conditionality": "The adjustment cost concern is legitimate, but it does not by itself justify the specific policy response the essay proposes, which would need to be evaluated against alternative remedies (direct transfers, retraining programs, place-based policies) that could address the distributional harm without the efficiency costs of tariffs."
+      },
+      {
+        "title": "Strategic Industry Argument Has Theoretical Foundations",
+        "quoted_passage": null,
+        "category": "conditionally_sound",
+        "explanation": "The argument that some industries merit special protection because of their strategic importance (national security, technological spillovers, supply chain resilience) has a legitimate theoretical basis. In the presence of externalities or market failures, free trade is not necessarily optimal, and targeted intervention can improve outcomes. The essay invokes this framework correctly in principle.\n\nThe difficulty, which the essay underweights, is implementation: identifying which industries truly generate positive externalities, designing interventions that capture the benefits without creating rent-seeking, and avoiding the tendency for 'strategic' designations to expand to cover politically favored industries that don't meet the economic criteria.",
+        "conditionality": "Sound if the identified industries genuinely produce positive externalities large enough to justify the cost of protection, and if the policy instrument is well-targeted rather than a broad tariff."
+      }
+    ]
+  }
+  ```

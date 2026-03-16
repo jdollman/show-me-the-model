@@ -87,22 +87,3 @@ issue_types:
       doesn't affect another's outcomes.
     example: "AI displaces white-collar workers, but cheaper labor benefits other sectors"
 
-  LUCAS_CRITIQUE:
-    name: "Lucas Critique"
-    description: >
-      Treats policy parameters, behavioral relationships, or institutional rules as fixed
-      when they would change in response to the shock. Named after Robert Lucas's insight
-      that agents and policymakers adapt their behavior to new conditions.
-    example: "Assumes tax revenue collapses without considering governments would adjust tax policy"
-
-  EQUILIBRIUM_MISUSE:
-    name: "Equilibrium Misuse"
-    description: >
-      Misuses the term "equilibrium" by treating it as synonymous with stationarity,
-      stability, or a calm resting state. In economics, equilibrium is a solution concept:
-      all agents solve their optimization problems and all relevant markets clear. In a
-      dynamic model, the entire transition path is an equilibrium, and it can involve large,
-      sustained changes in prices, output, and employment. Critics of economics often claim
-      that because economists "solve for equilibria" they assume stationarity and ignore
-      dynamics. This is the opposite of the truth.
-    example: "'Economists assume the economy returns to equilibrium' used to mean economists ignore adjustment dynamics"

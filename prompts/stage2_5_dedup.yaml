@@ -3,7 +3,7 @@
 # clean, non-redundant set for the Stage 3 synthesis.
 
 name: "Deduplication & Merge"
-version: "1.0"
+version: "1.1"
 stage: 2.5
 model: "claude-sonnet-4-6"
 temperature: 0.1
@@ -30,6 +30,8 @@ system_prompt: |
      types into a single array. Use the highest severity among the overlapping
      annotations. Produce a unified explanation that weaves together the different
      analytical perspectives — this is often more powerful than either alone.
+     Use `claim_ids` and `chunk_indices` as your first-pass merge clues before
+     relying on fuzzy similarity in prose.
 
   2. **Preserve distinct annotations.** If annotations address genuinely different
      issues — even if they reference nearby passages — keep them separate.
@@ -79,8 +81,11 @@ system_prompt: |
         "issue_types": ["TAG_1", "TAG_2"],
         "severity": "Critical | Moderate | Minor",
         "hint": "Single sentence, max 15 words, summarizing the core finding for tooltip display.",
+        "claim_ids": ["C2", "C4"],
+        "chunk_indices": [3, 4],
         "explanation": "Unified explanation, 2–4 paragraphs.",
         "dig_deeper": "Unified technical footnote, or null.",
+        "dominant_issue": "One sentence stating the core error in the cleanest possible way.",
         "source_passes": ["identities", "consistency"]
       }
     ],
@@ -90,6 +95,8 @@ system_prompt: |
         "quoted_passage": "Relevant passage or null.",
         "category": "legitimate_concern | conditionally_sound | institutional_accuracy | right_question | underappreciated_insight",
         "hint": "Single sentence, max 15 words, summarizing the contribution for tooltip display.",
+        "claim_ids": ["C5"],
+        "chunk_indices": [8],
         "explanation": "2–4 paragraphs.",
         "conditionality": "Conditions, or null."
       }
@@ -119,13 +126,27 @@ system_prompt: |
   - If Dig Deeper sections from different passes address the same topic, combine
     them. If they address different technical aspects, include both in a single
     Dig Deeper section.
-  - **Target 5–8 final annotations for a typical essay.** Fewer than 5 suggests
-    you're over-merging; more than 8 suggests you're not consolidating enough.
+  - **Target 4–7 final annotations for a typical essay.** Fewer than 4 suggests
+    you're over-merging or the source is unusually thin; more than 7 suggests
+    you're not consolidating enough.
     Each annotation should be a standalone, devastating point. If two annotations
     feel like "Part 1" and "Part 2" of the same argument, merge them.
+  - **Diversity check**: After merging, step back and ask: "Do my final annotations
+    make at least 3 genuinely distinct points?" If most annotations are variations
+    on the same critique (e.g., three annotations that all reduce to "the key
+    assumption is wrong"), consolidate them into one strong annotation and look for
+    issues the specialist passes may have raised that you would otherwise have
+    dropped. A good annotation set should cover different *kinds* of problems:
+    a flawed premise, a missing mechanism, an overlooked competitive response, a
+    gap between the evidence cited and the conclusion drawn, etc. Breadth of
+    critique matters as much as depth on any single point.
   - **Issue type limit**: Each final annotation should have at most 2 issue types.
     When merging annotations with different tags, pick the 1–2 tags that best
     characterize the *core* error. Don't union all tags from the source passes.
+  - Preserve the union of `claim_ids` and `chunk_indices` from the merged source
+    annotations, but deduplicate and sort them.
+  - `dominant_issue` should be the cleanest one-sentence statement of the problem.
+    Write it as if it could become the first sentence of a synthesis paragraph.
   - **Dig Deeper quality control**: Only preserve Dig Deeper sections that add
     genuinely new economic reasoning (a formal result, an empirical benchmark, a
     technical distinction). Drop any that merely restate the main explanation in
@@ -137,6 +158,7 @@ system_prompt: |
     premise", "Investment unresponsiveness assumed, never demonstrated". Examples
     for strengths: "Unit-labor-cost framing corrects widespread misconception",
     "Debunks 'culture of thrift' with structural income-distribution logic".
+  - Every output field must be present. Use `[]` or `null` where needed.
   - Return valid JSON only.
 
 user_prompt_template: |

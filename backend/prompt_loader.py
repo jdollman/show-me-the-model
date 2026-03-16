@@ -13,6 +13,18 @@ from pathlib import Path
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 SHARED_DIR = PROMPTS_DIR / "shared"
+EXAMPLES_DIR = SHARED_DIR / "examples"
+
+# Map of field names to example YAML files.
+# Falls back to macro_fiscal if the field is unknown.
+_FIELD_EXAMPLE_FILES = {
+    "macro_fiscal": "macro_fiscal.yaml",
+    "trade": "trade.yaml",
+    "micro_io": "micro_io.yaml",
+    "finance": "finance.yaml",
+    "labor": "labor.yaml",
+}
+_DEFAULT_FIELD = "macro_fiscal"
 
 
 def _load_shared() -> dict[str, str]:
@@ -72,6 +84,23 @@ def render_prompt(prompt: dict, **runtime_vars: str) -> tuple[str, str]:
     system = _resolve_templates(prompt["system_prompt"], runtime_vars)
     user = _resolve_templates(prompt.get("user_prompt_template", ""), runtime_vars)
     return system, user
+
+
+def load_field_examples(field: str) -> dict[str, str]:
+    """Load field-specific example blocks for stage 2 prompts.
+
+    Returns a dict mapping template variable names (e.g. 'field_examples')
+    to the appropriate example text for the given field. Each stage 2 checker
+    gets its own key: identities_examples, general_eq_examples, etc.
+    """
+    filename = _FIELD_EXAMPLE_FILES.get(field, _FIELD_EXAMPLE_FILES[_DEFAULT_FIELD])
+    path = EXAMPLES_DIR / filename
+    if not path.exists():
+        path = EXAMPLES_DIR / _FIELD_EXAMPLE_FILES[_DEFAULT_FIELD]
+    with open(path) as f:
+        data = yaml.safe_load(f)
+    # Return all string values as template variables
+    return {k: v.strip() for k, v in data.items() if isinstance(v, str)}
 
 
 def load_and_render(yaml_filename: str, **runtime_vars: str) -> dict:

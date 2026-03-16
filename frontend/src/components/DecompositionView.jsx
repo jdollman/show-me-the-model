@@ -1,5 +1,19 @@
 import { useState } from "react";
 
+function MetaPill({ children }) {
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold font-body"
+      style={{
+        background: "var(--smtm-issue-pill-bg)",
+        color: "var(--smtm-issue-pill-text)",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export default function DecompositionView({ decomposition }) {
   const [open, setOpen] = useState(false);
 
@@ -29,6 +43,25 @@ export default function DecompositionView({ decomposition }) {
 
       {open && (
         <div className="mt-4 space-y-6 pl-6">
+          {(decomposition.document_type || decomposition.field || decomposition.secondary_fields?.length > 0) && (
+            <div>
+              <h4 className="text-sm font-semibold mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+                Structural Classification
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {decomposition.document_type && (
+                  <MetaPill>Type: {decomposition.document_type}</MetaPill>
+                )}
+                {decomposition.field && (
+                  <MetaPill>Primary field: {decomposition.field}</MetaPill>
+                )}
+                {decomposition.secondary_fields?.map((field) => (
+                  <MetaPill key={field}>Secondary: {field}</MetaPill>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Central Thesis */}
           {decomposition.central_thesis && (
             <div>
@@ -51,6 +84,13 @@ export default function DecompositionView({ decomposition }) {
                 {decomposition.key_claims.map((c, i) => (
                   <div key={i} className="text-sm">
                     <p className="font-medium" style={{ color: "var(--smtm-text-primary)" }}>{c.claim}</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {c.claim_id && <MetaPill>{`Claim ${c.claim_id}`}</MetaPill>}
+                      {c.role_in_argument && <MetaPill>{c.role_in_argument}</MetaPill>}
+                      {c.supporting_chunk_indices?.map((idx) => (
+                        <MetaPill key={`${c.claim_id || i}-${idx}`}>chunk {idx}</MetaPill>
+                      ))}
+                    </div>
                     {c.quoted_passage && (
                       <blockquote
                         className="mt-1 border-l-3 pl-3 text-xs italic leading-relaxed"
@@ -63,6 +103,19 @@ export default function DecompositionView({ decomposition }) {
                       </blockquote>
                     )}
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {decomposition.load_bearing_claim_ids?.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+                Load-Bearing Claims
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {decomposition.load_bearing_claim_ids.map((claimId) => (
+                  <MetaPill key={claimId}>{`Claim ${claimId}`}</MetaPill>
                 ))}
               </div>
             </div>
@@ -108,6 +161,22 @@ export default function DecompositionView({ decomposition }) {
               <p className="text-sm leading-relaxed" style={{ color: "var(--smtm-decomp-text)" }}>
                 {decomposition.policy_or_shock}
               </p>
+            </div>
+          )}
+
+          {decomposition.notable_ambiguities?.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+                Ambiguities Worth Preserving
+              </h4>
+              <ul className="space-y-1.5">
+                {decomposition.notable_ambiguities.map((item, i) => (
+                  <li key={i} className="text-sm leading-relaxed flex gap-2" style={{ color: "var(--smtm-decomp-text)" }}>
+                    <span style={{ color: "var(--smtm-decomp-muted)" }} className="flex-shrink-0">&bull;</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

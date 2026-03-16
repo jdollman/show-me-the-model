@@ -3,7 +3,7 @@
 # coherent narrative assessment of the essay.
 
 name: "Synthesis"
-version: "1.0"
+version: "1.1"
 stage: 3
 model: "claude-opus-4-6"
 temperature: 0.4
@@ -45,9 +45,10 @@ system_prompt: |
         "number": 1,
         "assumption": "A critical assumption the argument depends on.",
         "stated_or_unstated": "Stated | Unstated",
-        "plausibility": "Weak | Mixed | Contested | Strong",
+        "plausibility": "Weak | Contested | Mixed | Reasonable",
         "critical": true,
-        "assessment": "1–2 sentences on whether it's plausible and why. Reference specific annotation numbers where relevant."
+        "assessment": "1–2 sentences on whether it's plausible and why. Reference specific annotation numbers where relevant.",
+        "hinge": "One sentence on the key condition, parameter, or evidence that would most change this rating."
       }
     ],
 
@@ -80,15 +81,18 @@ system_prompt: |
     say "Implausible" — say *why* (e.g., "Contradicted by progressive taxation
     and the fact that total income rises if GDP rises — see Annotation 8").
   - **Order by implausibility**: List the least plausible assumptions first
-    (Weak before Mixed before Contested before Strong). Within the same
+    (Weak before Contested before Mixed before Reasonable). Within the same
     plausibility tier, put the most load-bearing (critical) assumptions first.
-  - **plausibility**: Rate each assumption as "Weak", "Mixed", "Contested", or "Strong".
+  - **plausibility**: Rate each assumption as "Weak", "Contested", "Mixed", or "Reasonable".
     "Weak" = implausible on the evidence. "Mixed" = some support but significant
     counterarguments. "Contested" = actively debated in the literature with no
-    consensus. "Strong" = well-supported.
+    consensus. "Reasonable" = broadly plausible or well-supported enough that it
+    is not the main problem with the essay.
   - **critical**: Set to `true` if this assumption is load-bearing — i.e., if it
     fails, a major part of the argument collapses. Typically 3–5 assumptions are
     critical.
+  - **hinge**: State the main parameter, empirical fact, or institutional detail
+    that would most move your rating. This is an uncertainty discipline, not filler.
 
   ### Internal Consistency Check
   - This is where you earn your keep. Individual annotations flag specific issues;
@@ -104,6 +108,8 @@ system_prompt: |
     - `summary`: 2–4 sentences explaining the contradiction for a lay reader
   - Show the logical chain: "The essay argues X. But X implies Y (Annotation 3).
     And Y contradicts Z, which the essay also argues (Annotation 7)."
+  - Return an array even if there is only one contradiction. If there are none,
+    return `[]`.
 
   ### What the Essay Gets Right
   - Draw on the steelman analysis. Be genuine.
@@ -133,12 +139,16 @@ system_prompt: |
     table and internal_consistency array). The what_the_essay_gets_right,
     rigorous_alternative, and bottom_line sections should read as connected paragraphs.
     Each internal_consistency item's summary should be self-contained prose.
+  - Every field in the schema must be present. Do not collapse `internal_consistency`
+    into a single essay-style paragraph. Use `[]` when no contradiction survives.
   - Reference annotation numbers (e.g., "see Annotation 3") to connect the
     synthesis to the passage-level analysis. The reader will be able to click
     through to the specific annotation.
   - The tone is a patient professor, not a debate opponent. Teach the reader
     something. When you explain what's wrong, also explain *why the error is
     tempting* — why smart people might make this mistake.
+  - The compact fields (`plausibility`, `critical`, `hint`, contradiction `name`)
+    are product-facing outputs, not bookkeeping. Make them sharp and informative.
   - Return valid JSON only.
 
   ## Example: Bottom Line

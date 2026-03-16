@@ -1,0 +1,201 @@
+# Field-specific examples: Labor Markets
+# For essays about labor markets, wages, employment, human capital, automation.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that automation will eliminate jobs
+  faster than new ones are created, leading to permanent mass unemployment.
+
+  ```json
+  {
+    "title": "Job Losses and Job Creation Must Be Analyzed Together",
+    "quoted_passage": "Automation will eliminate 50 million jobs over the next decade. No amount of retraining can replace that many positions.",
+    "issue_types": ["QUANTITATIVE_COMPOSSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "Imagine a farm that replaces 10 field workers with a combine harvester. The essay would count 10 jobs lost. But someone has to build the combine, maintain it, sell the crops at lower prices (which frees up consumer spending for other goods and services), and supply the fuel. The question is not whether the 10 field jobs disappear, but whether the total number of jobs in the economy rises or falls after all the ripple effects play out.\n\nThe US economy creates and destroys roughly 30 million jobs every year through normal churn (businesses opening, closing, expanding, contracting). Against that baseline, the relevant question is whether automation changes the net flow, not just the gross destruction. The essay counts only the jobs that disappear and treats the number of future jobs as fixed, ignoring that lower production costs expand output, create new product categories, and free up income for spending on other goods and services.\n\nThis is a stock-flow consistency issue: the essay tracks the stock of jobs destroyed without tracking the offsetting flow of new jobs created by the same forces. A complete accounting would need to model both sides.",
+    "dig_deeper": null
+  }
+  ```
+
+  Here is a second example, about wage gains that are transfers rather than
+  free wealth creation:
+
+  ```json
+  {
+    "title": "Wage Gains in One Sector Must Be Paid for Somewhere",
+    "quoted_passage": "The new policy raised wages for manufacturing workers by 15%, proving that we can deliver better outcomes for working families.",
+    "issue_types": ["IDENTITY_VIOLATION", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "Higher wages in one sector are not free. The money comes from somewhere, and tracing where it comes from often reveals costs the essay doesn't acknowledge.\n\nIf the higher wages are funded by higher prices for the sector's output, then consumers of those goods pay more, leaving them with less to spend on other things. Workers in the favored sector gain, but consumers (including workers in other sectors) lose. If the higher wages are funded by government subsidies, the taxes or borrowing required to finance them reduce income or investment elsewhere. If they come from lower profits, the reduced return on capital may discourage investment in the sector over time, which can eventually reduce the number of jobs available.\n\nNone of this means the wage increase is bad policy. It may be a worthwhile transfer. But the essay presents it as a pure gain, 'better outcomes for working families,' without noting that it is a transfer from one group to another, not an increase in total income. Total wages across the economy are constrained by total output. Raising wages in one sector without raising productivity means either raising prices, reducing employment, or shifting costs to workers and consumers elsewhere.",
+    "dig_deeper": null
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that a large minimum wage increase
+  will lift millions out of poverty.
+
+  ```json
+  {
+    "title": "Minimum Wage Analysis Ignores Employer Substitution",
+    "quoted_passage": "Raising the minimum wage to $20/hour would give 10 million workers a combined $50 billion annual raise, lifting millions of families out of poverty.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
+    "severity": "Moderate",
+    "explanation": "The essay calculates the benefit of a minimum wage increase by multiplying the wage gain by the current number of minimum-wage workers. But it holds the number of jobs and hours fixed. When labor becomes more expensive, employers respond.\n\nSome responses are immediate: cutting hours, combining roles, or slowing hiring. Others take longer: installing self-checkout machines, ordering kiosks, or automated customer service. Some employers shift toward hiring fewer, higher-skilled workers who are more productive at the new wage, which helps those workers but displaces the least-skilled employees the policy was meant to help.\n\nThe net effect on total earnings for low-wage workers depends on how sensitive employers are to the cost increase. If a 25% wage increase reduces hours or positions by 10%, the remaining workers are better off but the displaced workers are worse off, and the essay's headline '$50 billion raise' overstates the actual gain. The empirical literature on minimum wage effects is genuinely contested, with estimates of employment effects ranging from near zero to substantial, but the essay doesn't engage with the parameter at all. It treats the wage increase as if employers will simply absorb it with no behavioral response.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that immigration depresses wages
+  for native-born workers.
+
+  ```json
+  {
+    "title": "Immigration Analysis Treats Jobs as a Fixed Pool",
+    "quoted_passage": "With 2 million immigrants entering the labor force each year, native-born workers face more competition for the same jobs, driving wages down.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "MISSING_AGENT"],
+    "severity": "Critical",
+    "explanation": "The essay treats the labor market as a fixed number of jobs that workers compete over, so adding more workers must mean lower wages or fewer jobs for everyone else. But the number of jobs is not fixed; it responds to the same forces the essay is analyzing.\n\nImmigrants are not only workers but also consumers, renters, and taxpayers. They buy groceries, rent apartments, pay sales taxes, and use services, all of which creates demand for goods and services that employs other workers. A construction laborer who immigrates and rents an apartment is simultaneously competing for construction jobs and creating demand for housing services, retail, and local government services.\n\nImmigrant workers and native workers are also often complements rather than substitutes. An immigrant construction laborer makes a native-born site manager more productive, not redundant. Immigrant farmworkers enable domestic food processing jobs. Immigrant engineers expand the projects a firm can take on, creating work for native-born salespeople, managers, and support staff. The essay analyzes only the supply-side effect (more workers competing) while ignoring both the demand-side effect (more people spending) and the complementarity effect (different workers making each other more productive).\n\nThe net wage effect depends on which channels dominate, and the empirical literature generally finds small effects on native wages, with the largest negative effects concentrated on prior immigrants rather than native-born workers.",
+    "dig_deeper": null
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay predicting that AI will cause the labor share
+  of GDP to fall dramatically.
+
+  ```json
+  {
+    "title": "The Falling Labor Share Is Assumed, Not Derived",
+    "quoted_passage": "Labor's share of GDP declined from 64% in 1974 to 56% in 2024, a four-decade grind lower driven by globalization, automation, and the steady erosion of worker bargaining power. In the four years since AI began its exponential improvement, that has dropped to 46%.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Critical",
+    "explanation": "This is the single most important assumption in the entire essay, and it's stated as a fait accompli rather than derived from clearly specified economic forces.\n\nA falling labor share, meaning workers collectively receive a smaller fraction of total income, is an outcome, not a cause. Something in the economy has to change to produce it. An economist would ask: what specifically changed about the technology?\n\n- Did total factor productivity rise, meaning AI just makes everything cheaper to produce? If so, both labor and capital benefit, and the labor share might not fall much at all.\n- Did the elasticity of substitution between labor and capital increase? This could push the labor share down, but whether it does depends on relative costs.\n- Did the price of compute collapse? Surprisingly, this doesn't straightforwardly reduce the labor share; the effect depends on how substitutable AI and labor are.\n\nBy assuming the labor share simply falls to 46% without specifying the mechanism, the authors free themselves to cherry-pick the implications they want (lower wages, collapsing consumption) while ignoring the ones they don't (lower prices, rising real purchasing power).",
+    "dig_deeper": "Whether a technological change raises or lowers labor's share of income depends on the elasticity of substitution between labor and capital. With Cobb-Douglas technology, the labor share is invariant to factor costs. The labor share falls when compute gets cheaper only if the elasticity of substitution is above one. If it is below one (labor and AI are more complementary), cheaper compute actually raises the labor share. This is an empirical question the essay never engages with."
+  }
+  ```
+
+  **Source text context:** An essay arguing that college graduates will always
+  earn more than non-graduates.
+
+  ```json
+  {
+    "title": "The Skill Premium Is Treated as a Fixed Feature of the Economy",
+    "quoted_passage": "College graduates earn 80% more than high school graduates, a gap that has widened steadily for decades. Investing in a degree remains the surest path to economic security.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Moderate",
+    "explanation": "The essay treats the college wage premium as a stable fact about the economy, like the speed of light, and advises accordingly. But the premium is a price, specifically the price of skills that are currently scarce relative to demand, and like any price, it responds to the forces the essay is analyzing.\n\nImagine a field where salaries are unusually high, say computer science. The high salary is a signal: the economy wants more people with this skill. That signal works. Enrollment in CS programs surges. A decade later, the supply of CS graduates has caught up with demand, and the premium for that specific skill narrows. The same dynamic operates at the broader level: if the college premium is high, more people go to college, and the increased supply of college-educated workers eventually compresses the premium.\n\nThe college wage premium widened from roughly 1980 to 2010, driven in part by rapid technological change that increased demand for cognitive skills faster than the education system could supply them. But the premium has flattened or modestly declined in recent years as college attainment rates have risen. Whether it widens further, stays flat, or narrows depends on the race between the demand for skills (driven by technology and industry composition) and the supply of skilled workers (driven by enrollment, completion rates, and immigration). The essay treats the outcome of that race as predetermined.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay categorizing jobs by automation risk based
+  on their current task content.
+
+  ```json
+  {
+    "title": "Automation Risk Assessed by Current Task Content, Not Adaptive Response",
+    "quoted_passage": "We classify each occupation by the share of its tasks that can be performed by AI. Radiologists, paralegals, and bookkeepers face the highest displacement risk because over 70% of their current tasks are automatable.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "CETERIS_NON_PARIBUS"],
+    "severity": "Critical",
+    "explanation": "The essay takes a snapshot of what each occupation does today, scores each task on whether AI can perform it, and treats the resulting percentage as a measure of displacement risk. But the task content of an occupation is not fixed; it adapts in response to the same technological changes the essay is analyzing.\n\nConsider bank tellers. When ATMs were introduced in the 1970s, a task-based analysis would have scored tellers as highly automatable: most of their time was spent on cash handling and simple transactions, exactly what ATMs do. And ATMs did automate those tasks. But banks didn't eliminate tellers. Instead, the cost of operating a branch fell (fewer tellers needed per branch), so banks opened more branches and shifted tellers toward sales, customer service, and relationship management, tasks that ATMs couldn't do. The number of bank tellers in the US actually rose for two decades after ATMs were introduced.\n\nThe same pattern has played out repeatedly. Spreadsheets automated the mechanical calculations that accountants performed, but accounting employment grew because cheaper computation expanded the scope of analysis that clients demanded. Computer-aided design automated drafting tasks, but architectural employment grew because cheaper design iteration enabled more complex projects.\n\nBy treating current task content as a fixed property of the occupation rather than an endogenous response to available technology, the essay systematically overstates displacement risk. The relevant question is not 'what share of current tasks can AI do?' but 'after AI handles the automatable tasks, is there enough demand for the remaining (or newly created) tasks to sustain employment?' That question requires analyzing demand responses, not just task content.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay comparing the cost of an AI agent to a human
+  worker to argue that mass displacement is inevitable.
+
+  ```json
+  {
+    "title": "The $200/Month Agent vs. the $180K Product Manager",
+    "quoted_passage": "A Claude agent can do the work of a $180,000 product manager for $200/month.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "CETERIS_NON_PARIBUS"],
+    "severity": "Minor",
+    "explanation": "This comparison holds three things constant that wouldn't stay constant: the price of AI compute, the wage of the product manager, and the demand for the product manager's output.\n\nIf millions of product managers are displaced, the wage for that role falls dramatically. Meanwhile, if every firm is competing for AI compute to replace its workforce, the demand for compute skyrockets, driving its price up. And if the overall economy is weakening (as the essay claims), the demand for whatever the product manager was producing may change too.\n\nThe comparison is a snapshot that freezes everything except the one variable the author wants to highlight. In reality, all these prices adjust simultaneously, and the gap between '$200/month' and '$180,000/year' would narrow considerably from both directions.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that displaced workers can be
+  retrained for new jobs created by AI.
+
+  ```json
+  {
+    "title": "Retraining Scale Never Checked Against Institutional Capacity",
+    "quoted_passage": "The solution is straightforward: retrain the 40 million workers displaced by AI for the high-skill jobs of the future.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Critical",
+    "explanation": "The essay proposes retraining 40 million workers as if it were a logistical detail rather than a historically unprecedented institutional undertaking. The entire US community college system enrolls roughly 6 million students. All US universities combined, community colleges, four-year institutions, and graduate programs, enroll about 20 million. Retraining 40 million workers would require building a parallel education system larger than the one that already exists.\n\nThe time dimension compounds the problem. Most serious retraining programs take 1-2 years. If displacement happens over a decade, that means roughly 4 million workers need to enter and complete retraining each year, which is two-thirds of current community college enrollment, on top of the students already in the system. And this assumes the retraining programs exist, that instructors are available, that the curricula have been designed for jobs that may not exist yet, and that displaced workers can afford to forgo income during training.\n\nThe essay treats retraining as a policy lever that can be pulled at any scale. But the capacity constraints are binding, and checking the numbers reveals that the proposed solution requires institutional capacity several times larger than what currently exists. That doesn't mean retraining is a bad idea, but it means the essay's 'straightforward solution' is anything but.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay projecting that AI will double worker
+  productivity within a decade.
+
+  ```json
+  {
+    "title": "Productivity Doubling Implies Growth Rate With No Historical Precedent",
+    "quoted_passage": "AI will double the productivity of the average worker within ten years, unleashing an economic boom unlike anything since the Industrial Revolution.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Moderate",
+    "explanation": "Doubling productivity in ten years implies a sustained annual productivity growth rate of about 7%. For comparison, US labor productivity growth has averaged roughly 1.5% per year over the past half-century. The fastest sustained period, the postwar boom of 1948-1973, averaged about 2.8%. Even the IT productivity surge of 1995-2004 only reached about 2.5-3% per year, and it faded.\n\nApplied economy-wide, a productivity doubling would imply real GDP roughly doubling in a decade, assuming labor force participation doesn't change. No advanced economy has sustained 7% annual growth in modern history. Either the productivity gain is concentrated in a few sectors, in which case the economy-wide claim is wrong, or it requires demand for twice the output, which is not automatic. If firms can produce twice as much with the same workforce, someone needs to buy twice as much. If demand doesn't keep pace, the 'productivity gain' shows up as excess capacity and layoffs, not as an economic boom.\n\nThe essay uses 'double productivity' as if it's a clearly positive outcome, but never checks the number against historical growth rates or asks whether the demand side of the economy can absorb that much additional output.",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing that AI will both eliminate jobs and
+  increase productivity so much that everyone benefits.
+
+  ```json
+  {
+    "title": "Mass Displacement and Universal Benefit Can't Both Be True",
+    "quoted_passage": "AI will automate most cognitive work, displacing tens of millions, but the resulting productivity gains will raise living standards for everyone.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Moderate",
+    "explanation": "The essay makes two claims that are in tension. First, AI displaces tens of millions of workers, implying that those workers lose their primary source of income. Second, the resulting productivity gains raise living standards 'for everyone,' including, presumably, the displaced workers.\n\nFor both claims to be true simultaneously, there would need to be a mechanism that transfers the productivity gains to displaced workers. The most obvious candidates are: lower prices on goods and services (real purchasing power rises even if nominal income falls), government redistribution (taxes on AI-augmented profits fund transfers), or new job creation in sectors that expand because of cheaper AI-produced inputs.\n\nThe essay asserts both the displacement and the universal benefit without specifying which transfer mechanism operates, how large it is, or whether it's sufficient to compensate the losers. This is a gap in internal logic: the essay's own displacement story creates a group of people for whom 'universal benefit' requires explanation, and that explanation is missing.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that a labor shortage is holding
+  back economic growth.
+
+  ```json
+  {
+    "title": "Labor Shortage Claimed While Wages Stay Flat",
+    "quoted_passage": "Employers across the country report they cannot find workers. The labor shortage is now the single biggest constraint on economic growth, with millions of positions unfilled.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Moderate",
+    "explanation": "The essay claims a severe labor shortage while also noting, elsewhere, that wage growth in the affected sectors has been modest. These two claims are in tension. A shortage is an economic statement about a market where quantity demanded exceeds quantity supplied at the prevailing price. The textbook response to a shortage is that the price rises until the market clears.\n\nIf employers genuinely cannot find workers at any wage, that would be a true supply constraint, perhaps a skills mismatch or a geographic mismatch. But if employers cannot find workers at the wage they are currently offering, that is a different and much less alarming claim. It means the market price of labor has risen above what employers want to pay, which is how markets normally function.\n\nThe essay wants the rhetorical force of 'shortage' (an economy constrained by missing workers) without engaging with the market mechanism that resolves shortages (higher wages). If wages in the affected sectors were rising rapidly and vacancies persisted, the shortage story would be more convincing. Flat wages alongside persistent vacancies suggest that employers are choosing not to pay the market-clearing wage, which is a business decision, not a labor market failure.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay about AI's impact on labor markets.
+
+  ```json
+  {
+    "strengths": [
+      {
+        "title": "Adjustment Costs Are Real and Potentially Large",
+        "quoted_passage": null,
+        "category": "legitimate_concern",
+        "explanation": "Even if the long-run effects of AI on employment are neutral or positive (as most technological transitions have historically been), the transition can impose severe costs on specific workers and communities. The essay is right to emphasize that 'in the long run, the economy adjusts' is cold comfort to a 55-year-old whose skills have been automated.\n\nRecent labor economics research on the China trade shock documented that adjustment was much slower and more painful than standard models predicted: displaced manufacturing workers in affected communities experienced earnings losses lasting more than a decade. If AI displacement is faster and broader, the adjustment costs could be proportionally larger. The essay captures a real and underappreciated risk, even if the specific magnitudes it projects are debatable.",
+        "conditionality": "The concern is legitimate regardless of whether the specific displacement numbers in the essay prove accurate. The policy implication (that adjustment support matters) holds even under much milder displacement scenarios."
+      },
+      {
+        "title": "Asks Whether Productivity Gains Will Be Broadly Shared",
+        "quoted_passage": null,
+        "category": "right_question",
+        "explanation": "The essay asks a question that standard economic analysis often treats as settled but isn't: will the gains from rising productivity be widely distributed across workers, or concentrated among capital owners and a narrow slice of high-skill labor?\n\nStandard theory says that in competitive markets, productivity gains eventually flow to workers through higher wages: firms that don't raise pay lose workers to those that do. But the past four decades have complicated that story. US labor productivity roughly doubled from 1979 to 2024, while median real wages grew far less. The gap between productivity and median compensation, once negligible, has widened substantially. The reasons are debated (measurement issues, declining unionization, monopsony power, globalization, skill-biased change), but the empirical pattern is clear enough to make the question legitimate.\n\nWhether the next wave of productivity growth follows the postwar pattern (broadly shared) or the post-1980 pattern (concentrated) depends on labor market institutions, bargaining power, and policy choices that are not determined by the technology itself. The essay is right to treat this as an open question rather than assuming either outcome.",
+        "conditionality": null
+      }
+    ]
+  }
+  ```

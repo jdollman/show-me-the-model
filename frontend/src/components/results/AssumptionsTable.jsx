@@ -82,11 +82,25 @@ function AssumptionCard({ assumption, index }) {
         </span>
       </div>
       {open && (
-        <div
-          className="mt-2.5 ml-6 text-[13px] leading-relaxed font-body"
-          style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
-        >
-          {assumption.assessment}
+        <div className="mt-2.5 ml-6 space-y-2">
+          <div
+            className="text-[13px] leading-relaxed font-body"
+            style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
+          >
+            {assumption.assessment}
+          </div>
+          {assumption.hinge && (
+            <div
+              className="rounded-md px-3 py-2 text-[12px] leading-relaxed font-body"
+              style={{
+                background: "var(--smtm-bg-surface-raised)",
+                color: "var(--smtm-text-muted)",
+              }}
+            >
+              <strong style={{ color: "var(--smtm-text-primary)" }}>Hinge:</strong>{" "}
+              {assumption.hinge}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -152,11 +166,25 @@ function AssumptionRow({ assumption, index }) {
       {open && (
         <tr>
           <td colSpan={5} className="px-2.5 pb-4 pt-1">
-            <div
-              className="ml-8 text-[13px] leading-relaxed font-body"
-              style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
-            >
-              {assumption.assessment}
+            <div className="ml-8 space-y-2">
+              <div
+                className="text-[13px] leading-relaxed font-body"
+                style={{ color: "var(--smtm-text-secondary)", textAlign: "justify", hyphens: "auto" }}
+              >
+                {assumption.assessment}
+              </div>
+              {assumption.hinge && (
+                <div
+                  className="rounded-md px-3 py-2 text-[12px] leading-relaxed font-body"
+                  style={{
+                    background: "var(--smtm-bg-surface-raised)",
+                    color: "var(--smtm-text-muted)",
+                  }}
+                >
+                  <strong style={{ color: "var(--smtm-text-primary)" }}>Hinge:</strong>{" "}
+                  {assumption.hinge}
+                </div>
+              )}
             </div>
           </td>
         </tr>

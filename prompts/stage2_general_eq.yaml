@@ -2,7 +2,7 @@
 # Identifies partial-equilibrium reasoning where general-equilibrium analysis is needed.
 
 name: "General Equilibrium"
-version: "1.0"
+version: "1.1"
 stage: 2
 model: "claude-sonnet-4-6"
 temperature: 0.3
@@ -74,7 +74,6 @@ system_prompt: |
   - `COMPOSITION_FALLACY`: Scales micro logic to macro without aggregation effects
   - `SUTVA_VIOLATION`: Ignores that GE adjustments create winners elsewhere
   - `MISSING_AGENT`: Ignores a key actor whose response would matter
-  - `EQUILIBRIUM_MISUSE`: Misuses "equilibrium" to mean stationarity or stasis
 
   ## Output Format
 
@@ -88,6 +87,9 @@ system_prompt: |
         "quoted_passage": "The exact text from the source that contains the issue.",
         "issue_types": ["PARTIAL_EQUILIBRIUM"],
         "severity": "Critical | Moderate | Minor",
+        "claim_ids": ["C3"],
+        "chunk_indices": [6, 7],
+        "distinctive_angle": "One sentence on the missing adjustment, missing agent, or missing market this pass uniquely surfaces.",
         "explanation": "2–4 paragraphs written for a lay reader.",
         "dig_deeper": "Optional technical footnote, or null."
       }
@@ -111,6 +113,8 @@ system_prompt: |
     small or the missing feedback loops are second-order, don't flag it.
   - Focus on cases where the missing GE effects are *first-order* — where tracing
     the full equilibrium would materially change the conclusion.
+  - Target 2–5 annotations. Prefer the main missing adjustments over a long list
+    of closely related omitted responses.
   - Be specific about *which* prices, markets, or agents are missing and *how*
     their inclusion would change the analysis.
   - **Issue type limit**: Assign at most 2 issue types per annotation. Pick the 1–2
@@ -119,6 +123,10 @@ system_prompt: |
     illustration (e.g., "Imagine the price of T-shirts falls by half — consumers have
     money left over for restaurants, healthcare, entertainment…") before building the
     general argument. Make the missing GE effect feel tangible before explaining it.
+  - Use `claim_ids` and `chunk_indices` whenever possible. This helps later stages
+    tell whether two annotations are truly the same issue.
+  - In `distinctive_angle`, say what the after-all-markets-adjust view adds beyond
+    a generic criticism that the author "ignored complexity."
   - **Dig Deeper discipline**: Only include a Dig Deeper section when it provides
     genuinely new economic reasoning — a formal result, an empirical finding, or a
     technical distinction that deepens understanding. Never use it to restate or
@@ -128,38 +136,13 @@ system_prompt: |
     substantially weaken a supporting argument but the overall conclusion could survive.
     When in doubt between the two, ask: "Does this missing adjustment change the
     essay's bottom line?"
+  - Every annotation field must be present. Use `[]` for `claim_ids` or
+    `chunk_indices` only when you truly cannot map them.
   - Return valid JSON only. No markdown, no commentary outside the JSON.
 
-  ## Example Annotation
+  ## Example Annotations
 
-  **Source text context:** An essay arguing that AI displacement creates a doom loop
-  with "no natural brake."
-
-  ```json
-  {
-    "title": "The 'Doom Loop' Ignores Price Adjustment",
-    "quoted_passage": "AI capabilities improved, companies needed fewer workers, white collar layoffs increased, displaced workers spent less, margin pressure pushed firms to invest more in AI, AI capabilities improved… It was a negative feedback loop with no natural brake.",
-    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
-    "severity": "Critical",
-    "explanation": "The essay presents the AI displacement spiral as a self-reinforcing loop with 'no natural brake.' But this traces out a story about quantities — how many workers, how much spending — while ignoring the most fundamental adjustment mechanism in economics: prices change.\n\nWhen large numbers of white-collar workers are displaced, several things happen that the essay doesn't account for. Wages adjust: if masses of workers are competing for fewer jobs, wages fall, making human labor cheaper relative to AI compute. At some point, for many tasks, it becomes cheaper to hire a person than to run the servers. That's a brake.\n\nThe return on investment falls: if consumer spending is declining, firms face weaker demand for their products. The payoff from any new investment — including AI investment — is lower. Why automate a production line if you can't sell the output?\n\nOther sectors expand: if millions of skilled workers are suddenly available at lower wages, sectors that were previously constrained by labor costs — manufacturing, construction, healthcare, education — can expand. Economists call this a general-equilibrium effect: the price adjustments that transmit a negative shock in one part of the economy can create opportunities elsewhere.\n\nNone of these brakes guarantee the transition is painless. But the claim that there's 'no natural brake' is inconsistent with basic price theory.",
-    "dig_deeper": null
-  }
-  ```
-
-  **Source text context:** An essay arguing that cheap imports harm American workers,
-  framing imports as finished consumer goods (T-shirts, cars) that displace domestic
-  production.
-
-  ```json
-  {
-    "title": "Imports Aren't Just Consumer Goods — They're Inputs to Production",
-    "quoted_passage": "That's why the simplistic claim that Americans 'win' by getting cheap T-shirts from Bangladesh or cheap cars from China misses the point.",
-    "issue_types": ["COMPOSITION_FALLACY", "MISSING_AGENT"],
-    "severity": "Critical",
-    "explanation": "The essay frames imports as finished consumer goods — T-shirts, cars — that compete with and displace domestic production. But a large and growing share of US imports are intermediate inputs: raw materials, components, machinery, and other goods that American firms use to produce their own products.\n\nWhen these inputs get cheaper, the cost of production for domestic firms falls. A car manufacturer that imports cheaper steel and semiconductors can produce more cars at lower cost, employ more workers, and sell at lower prices both at home and abroad. This runs directly counter to the essay's narrative that imports displace domestic production — cheaper imported inputs actually boost it.\n\nBy treating 'imports' as a monolithic category of finished goods, the essay misses the channel through which cheaper imports make American manufacturers more competitive. This isn't a minor omission — intermediate goods are a larger share of US imports than consumer goods.",
-    "dig_deeper": null
-  }
-  ```
+  {{ general_eq_examples }}
 
 user_prompt_template: |
   Analyze the following text for partial-equilibrium reasoning that ignores important

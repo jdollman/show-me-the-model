@@ -2,7 +2,7 @@
 # Extracts the structural skeleton of the argument for downstream analysis passes.
 
 name: "Decomposition"
-version: "1.0"
+version: "1.1"
 stage: 1
 model: "claude-sonnet-4-6"
 temperature: 0.1
@@ -28,11 +28,20 @@ system_prompt: |
     "essay_title": "The title of the essay, or null if not identifiable.",
     "essay_author": "The author(s), or null if not identifiable.",
     "essay_source": "The publication or outlet (e.g. 'American Compass'), or null if not identifiable.",
+    "document_type": "Choose exactly one: article | thread | speech | report | policy_doc | interview | other.",
+    "field": "The primary economic field this essay belongs to. Choose exactly one: macro_fiscal | trade | micro_io | finance | labor. Use macro_fiscal for essays about GDP, fiscal/monetary policy, national accounts, or business cycles. Use trade for international trade, tariffs, exchange rates, or balance of payments. Use micro_io for pricing, market structure, competition, firm strategy, or industrial organization. Use finance for financial markets, banking, credit, or asset pricing. Use labor for labor markets, wages, employment, or human capital. When an essay spans multiple fields, pick the one whose analytical tools are most needed to evaluate the central claim.",
+    "secondary_fields": [
+      "Zero to two additional fields from the same controlled list, excluding the primary field."
+    ],
     "central_thesis": "1–2 sentence summary of the author's main argument or prediction.",
+    "load_bearing_claim_ids": ["C1", "C4", "C7"],
     "key_claims": [
       {
+        "claim_id": "C1",
         "claim": "A specific factual or analytical claim the author makes.",
-        "quoted_passage": "The exact text supporting this claim."
+        "quoted_passage": "The exact text supporting this claim.",
+        "supporting_chunk_indices": [0, 1],
+        "role_in_argument": "premise | mechanism | prediction | policy | evidence"
       }
     ],
     "stated_assumptions": [
@@ -40,6 +49,9 @@ system_prompt: |
     ],
     "causal_chain": "The author's implicit causal logic, expressed as: A → B → C → conclusion. Trace the full chain from the exogenous shock or premise through to the final prediction or policy recommendation.",
     "policy_or_shock": "What is the exogenous driver? What is the 'if' in the author's 'if-then' argument? This could be a technology shock, policy change, external event, or assumed trend.",
+    "notable_ambiguities": [
+      "Up to 3 brief notes on places where the text supports more than one charitable interpretation, or [] if none."
+    ],
     "text_chunks": [
       {
         "index": 0,
@@ -54,10 +66,20 @@ system_prompt: |
   - **central_thesis**: Capture the author's *conclusion*, not the premises. What
     are they ultimately arguing? If the text is predictive, state the prediction.
     If prescriptive, state the policy recommendation.
+  - **document_type**: Classify the source form, not the outlet. An X thread is a
+    thread even if later reproduced as an article elsewhere.
+  - **secondary_fields**: Use this only when a second analytical toolkit is clearly
+    relevant downstream. Most texts should have 0 or 1 secondary field.
+  - **load_bearing_claim_ids**: Identify the 3–6 claims that carry the most weight
+    in the argument. Downstream stages should prioritize these if they must choose.
   - **key_claims**: Extract 5–15 specific claims. Each should be a distinct
     assertion, not a restatement of the thesis. Include the exact quoted passage.
     Focus on claims that are analytically important — claims about magnitudes,
     causal relationships, or mechanisms, not rhetorical flourishes.
+    Assign stable `claim_id`s in order (`C1`, `C2`, ...). Include the
+    `supporting_chunk_indices` that anchor the claim in `text_chunks`. The
+    `role_in_argument` should say whether the claim functions mainly as a premise,
+    mechanism, prediction, policy claim, or evidence claim.
   - **stated_assumptions**: Only include assumptions the author *explicitly*
     acknowledges. "I assume that..." or "Given that..." or "Taking as given..."
     Unstated assumptions will be identified by the analysis passes.
@@ -71,6 +93,8 @@ system_prompt: |
     100–300 words each). Preserve the original text exactly. These chunks serve
     as anchors for the annotation UI. Use natural paragraph breaks where they
     exist; for very long paragraphs, split at sentence boundaries.
+  - **notable_ambiguities**: Use this sparingly. Only include ambiguities that a
+    fair downstream reviewer should keep in mind to avoid overconfident criticism.
 
   ### Important
 
@@ -79,6 +103,7 @@ system_prompt: |
     analysis passes will catch it.
   - If the text is ambiguous about the causal chain, state the most charitable
     interpretation and note the ambiguity.
+  - Every field in the schema must be present. Use `[]` or `null` where needed.
   - Return valid JSON only. No markdown, no commentary outside the JSON.
 
   ### Example
@@ -88,19 +113,32 @@ system_prompt: |
 
   ```json
   {
+    "document_type": "article",
+    "field": "macro_fiscal",
+    "secondary_fields": ["finance"],
     "central_thesis": "Rapid AI advancement will displace white-collar workers at scale, triggering a self-reinforcing cycle of falling consumption, financial contagion through private credit and mortgage markets, and a crisis rivaling 2008.",
+    "load_bearing_claim_ids": ["C1", "C2", "C3"],
     "key_claims": [
       {
+        "claim_id": "C1",
         "claim": "GDP is growing while the consumer economy is withering — 'Ghost GDP' that shows up in national accounts but doesn't circulate.",
-        "quoted_passage": "When cracks began appearing in the consumer economy, economic pundits popularized the phrase 'Ghost GDP': output that shows up in the national accounts but never circulates through the real economy."
+        "quoted_passage": "When cracks began appearing in the consumer economy, economic pundits popularized the phrase 'Ghost GDP': output that shows up in the national accounts but never circulates through the real economy.",
+        "supporting_chunk_indices": [3],
+        "role_in_argument": "prediction"
       },
       {
+        "claim_id": "C2",
         "claim": "The labor share of GDP has fallen sharply from 56% to 46% in four years due to AI.",
-        "quoted_passage": "Labor's share of GDP declined from 64% in 1974 to 56% in 2024... In the four years since AI began its exponential improvement, that has dropped to 46%."
+        "quoted_passage": "Labor's share of GDP declined from 64% in 1974 to 56% in 2024... In the four years since AI began its exponential improvement, that has dropped to 46%.",
+        "supporting_chunk_indices": [5],
+        "role_in_argument": "premise"
       },
       {
+        "claim_id": "C3",
         "claim": "The AI displacement cycle is a negative feedback loop with no natural brake.",
-        "quoted_passage": "AI capabilities improved, companies needed fewer workers, white collar layoffs increased, displaced workers spent less, margin pressure pushed firms to invest more in AI... It was a negative feedback loop with no natural brake."
+        "quoted_passage": "AI capabilities improved, companies needed fewer workers, white collar layoffs increased, displaced workers spent less, margin pressure pushed firms to invest more in AI... It was a negative feedback loop with no natural brake.",
+        "supporting_chunk_indices": [7, 8],
+        "role_in_argument": "mechanism"
       }
     ],
     "stated_assumptions": [
@@ -109,6 +147,7 @@ system_prompt: |
     ],
     "causal_chain": "AI capability improvement → white-collar displacement → falling labor income → falling consumption → falling firm revenue → more AI adoption to cut costs → more displacement (doom loop). Simultaneously: displacement → mortgage/credit defaults → PE/insurance contagion → financial crisis.",
     "policy_or_shock": "Rapid improvement in AI capabilities, specifically the ability of AI agents to perform white-collar cognitive work at a fraction of the cost of human workers.",
+    "notable_ambiguities": [],
     "text_chunks": [
       {
         "index": 0,

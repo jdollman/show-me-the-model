@@ -190,7 +190,7 @@ The authors are committing a composition fallacy: what's bad for intermediary fi
 ### Annotation 8: Fiscal Revenue Doesn't Necessarily Fall
 
 **Severity:** Moderate
-**Issue type:** `IDENTITY_VIOLATION`, `LUCAS_CRITIQUE`
+**Issue type:** `IDENTITY_VIOLATION`, `CETERIS_NON_PARIBUS`
 
 **Passage:**
 > *The system wasn't designed for a crisis like this. The federal government's revenue base is essentially a tax on human time. People work, firms pay them, the government takes a cut... federal receipts were running 12% below CBO baseline projections.*

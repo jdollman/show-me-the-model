@@ -132,7 +132,7 @@ The essay strings these trends together as if they were all consequences of trad
 ### Annotation 6: "Maximize Production" ≠ "Restrict Imports"
 
 **Severity:** Moderate
-**Issue type:** `INTERNAL_CONTRADICTION`, `LUCAS_CRITIQUE`
+**Issue type:** `INTERNAL_CONTRADICTION`, `CETERIS_NON_PARIBUS`
 
 **Passage:**
 > *If we truly want to maximise American consumer wellbeing, we must flip the narrative. The goal should not be to maximise cheap imports, as most economists mistakenly believe. It should be to maximise domestic production and productivity growth.*

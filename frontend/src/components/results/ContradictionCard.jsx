@@ -46,12 +46,22 @@ export default function ContradictionCard({ contradiction }) {
         </span>
       </button>
       {open && (
-        <p
-          className="mt-3 ml-[26px] text-[13.5px] leading-relaxed font-body"
-          style={{ color: "var(--smtm-contra-text)" }}
-        >
-          {contradiction.summary}
-        </p>
+        <div className="mt-3 ml-[26px] space-y-2">
+          {contradiction.hint && (
+            <p
+              className="m-0 text-[12px] font-semibold font-body"
+              style={{ color: "var(--smtm-text-muted)" }}
+            >
+              {contradiction.hint}
+            </p>
+          )}
+          <p
+            className="m-0 text-[13.5px] leading-relaxed font-body"
+            style={{ color: "var(--smtm-contra-text)" }}
+          >
+            {contradiction.summary}
+          </p>
+        </div>
       )}
     </div>
   );

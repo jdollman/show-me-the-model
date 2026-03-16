@@ -2,7 +2,7 @@
 # Checks whether the argument's own assumptions and logic are self-consistent.
 
 name: "Internal Consistency"
-version: "1.0"
+version: "1.1"
 stage: 2
 model: "claude-sonnet-4-6"
 temperature: 0.3
@@ -61,6 +61,9 @@ system_prompt: |
         "quoted_passage": "The exact text from the source that contains the issue. For contradictions that span multiple passages, quote the most important one and reference the other in the explanation.",
         "issue_types": ["INTERNAL_CONTRADICTION"],
         "severity": "Critical | Moderate | Minor",
+        "claim_ids": ["C1", "C6"],
+        "chunk_indices": [2, 7],
+        "distinctive_angle": "One sentence on the specific logical conflict or conclusion-that-does-not-follow this pass uniquely surfaces.",
         "explanation": "2–4 paragraphs written for a lay reader.",
         "dig_deeper": "Optional technical footnote, or null."
       }
@@ -84,6 +87,8 @@ system_prompt: |
     are empirically correct. Other passes check the empirics. You check whether
     the argument is *valid* (conclusions follow from premises), not whether it's
     *sound* (premises are true).
+  - Target 2–5 annotations. Focus on contradictions that materially reshape the
+    reader's view of the overall argument.
   - Be precise about the contradiction. Quote both conflicting claims. Show the
     reader exactly how A implies not-B, or how the author's own mechanism in
     paragraph X undermines the conclusion in paragraph Y.
@@ -95,6 +100,9 @@ system_prompt: |
     vivid and specific (e.g., "The essay says income shifts to high-savers, which should
     push asset prices *up* — but then predicts a 38% equity crash. Both can't be true.")
     State the contradiction crisply before unpacking the logic.
+  - Use `claim_ids` and `chunk_indices` whenever possible.
+  - In `distinctive_angle`, say what contradiction or invalid inference this pass
+    adds beyond merely saying an assumption is implausible.
   - **Dig Deeper discipline**: Only include a Dig Deeper section when it provides
     genuinely new economic reasoning — a formal result, an empirical finding, or a
     technical distinction that deepens understanding. Never use it to restate or
@@ -104,6 +112,8 @@ system_prompt: |
     conclusion. *Moderate* means a real inconsistency that weakens the argument but
     the main conclusion might survive if one of the conflicting claims were dropped.
     When in doubt, ask: "Does the essay's bottom line survive this contradiction?"
+  - Every annotation field must be present. Use `[]` for `claim_ids` or
+    `chunk_indices` only when you truly cannot map them.
   - Return valid JSON only.
 
   ## Naming and Language
@@ -117,21 +127,9 @@ system_prompt: |
     labeling it with abstract terms. "The essay says X, but X implies Y, which
     contradicts Z" is better than "This creates a paradox."
 
-  ## Example Annotation
+  ## Example Annotations
 
-  **Source text context:** An essay arguing that income redistribution to capital
-  owners will collapse both consumption AND asset prices.
-
-  ```json
-  {
-    "title": "Redistribution to Savers Can't Crash Asset Prices",
-    "quoted_passage": "The owners of compute saw their wealth explode as labor costs vanished. Meanwhile, real wage growth collapsed.",
-    "issue_types": ["INTERNAL_CONTRADICTION", "MISSING_MECHANISM"],
-    "severity": "Critical",
-    "explanation": "The essay's consumption-collapse story rests on a specific claim: income shifts from workers (who spend most of what they earn) to capital owners (who save most of what they earn), so aggregate consumption falls.\n\nThis reasoning has a problem that undermines the essay's own financial predictions. Where does the capital owners' additional saving go? If the labor share falls by 10 percentage points, that income shifts to capital owners. Even if those owners save a large fraction, that saving enters the financial system — it's invested in stocks, bonds, real estate, or other assets. Increased saving pushes down interest rates and pushes up asset prices.\n\nThis directly contradicts the essay's central financial prediction: a major equity crash. The very mechanism the essay relies on for the consumption collapse (redistribution to high-savers) is the same mechanism that should, in equilibrium, support the asset prices it predicts will crash. The essay wants income to shift to savers (to explain falling consumption) and asset prices to fall (to explain the financial crisis), but the first implies the opposite of the second.\n\nThe author would need to explain what breaks the link between higher saving and higher asset prices. That explanation might exist — perhaps the financial contagion channel is so severe that it overwhelms the saving effect — but the essay doesn't provide it.",
-    "dig_deeper": null
-  }
-  ```
+  {{ consistency_examples }}
 
 user_prompt_template: |
   Analyze the following text for internal consistency — check whether the argument's

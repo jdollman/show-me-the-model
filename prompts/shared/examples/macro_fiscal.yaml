@@ -1,0 +1,188 @@
+# Field-specific examples: Macroeconomic & Fiscal Policy
+# For essays about GDP, fiscal/monetary policy, national accounts, business cycles.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that AI will cause a GDP boom while
+  consumer spending collapses.
+
+  ```json
+  {
+    "title": "GDP Can't Easily Rise While Consumption Collapses",
+    "quoted_passage": "It should have been clear all along that a single GPU cluster in North Dakota generating the output previously attributed to 10,000 white-collar workers in midtown Manhattan is more economic pandemic than economic panacea. The velocity of money flatlined. The human-centric consumer economy, 70% of GDP at the time, withered.",
+    "issue_types": ["QUANTITATIVE_COMPOSSIBILITY", "IDENTITY_VIOLATION"],
+    "severity": "Critical",
+    "explanation": "The essay describes an economy where GDP is growing robustly while the 'consumer economy' (70% of GDP) is 'withering.' Let's work through the arithmetic.\n\nGDP is the sum of four components: consumer spending (C, about 70% of GDP), investment (I, about 16-18%), government spending (G, about 16-18%), and net exports (NX, typically negative 2-4%). These shares have to add up.\n\nIf consumption is falling while GDP is rising, then investment, government spending, or net exports must be rising by more than enough to offset the decline. Because consumption is such a large share of GDP, the required increases in the other components would need to be enormous. For example, if GDP were to grow by 10% while consumption fell by 10%, investment would need to roughly double. That's not impossible in principle, but it's an extraordinary claim that would require an extraordinary explanation.\n\nThe essay doesn't provide one. It gestures at AI investment as the offset, but never quantifies whether the AI compute buildout could plausibly fill a gap of that magnitude. This is what we call 'quantitative compossibility': the individual claims might each sound plausible in isolation, but when you put them together and check the arithmetic, the required magnitudes become implausible.",
+    "dig_deeper": null
+  }
+  ```
+
+  Here is a second example, showing how causal reasoning from an accounting
+  identity can go wrong:
+
+  ```json
+  {
+    "title": "A Larger Trade Deficit Does Not Mechanically Reduce GDP",
+    "quoted_passage": "Since GDP = C + I + G + NX, a rising trade deficit (falling NX) directly subtracts from GDP growth.",
+    "issue_types": ["IDENTITY_VIOLATION"],
+    "severity": "Critical",
+    "explanation": "This is one of the most common errors in popular economic writing: reading the GDP identity as a causal equation rather than an accounting definition.\n\nGDP = C + I + G + NX is true by construction: it defines how we measure GDP. But it does not say that a change in one component, holding the others fixed, causes GDP to change. The components are not independent. Imports appear in the identity twice: once as a subtraction in NX, and once as an addition inside C, I, or G (because when you buy an imported car, that shows up in consumption). These two entries cancel out.\n\nTo see why, imagine a country that starts importing more capital equipment. Imports rise, so NX falls. But investment (I) rises by the same amount, because the imported equipment is investment spending. GDP doesn't change at all; the fall in NX is exactly offset by the rise in I. The identity still holds, but the causal story 'rising imports reduce GDP' gets the economics backwards.\n\nThe correct approach is to ask what is causing imports to change. If imports rise because domestic demand is strong (consumers and firms are buying more of everything), that's a sign of a growing economy, not a shrinking one. If imports rise because a foreign country is subsidizing exports, the effect on GDP depends on what happens to domestic production and spending, not on the NX line in the identity.",
+    "dig_deeper": "The confusion arises from treating an identity as a behavioral equation. In a behavioral model, you would specify how C, I, G, exports, and imports each respond to shocks, and then check what happens to GDP. The identity just tells you the answer has to add up. The classic illustration: if the government increases G by buying imported goods, G rises and NX falls by the same amount, leaving GDP unchanged. The identity holds, but someone reading it causally would mistakenly predict that the fall in NX 'offsets' the rise in G. In reality, both movements reflect the same underlying transaction."
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that AI displacement creates a doom loop
+  with "no natural brake."
+
+  ```json
+  {
+    "title": "The 'Doom Loop' Ignores Price Adjustment",
+    "quoted_passage": "AI capabilities improved, companies needed fewer workers, white collar layoffs increased, displaced workers spent less, margin pressure pushed firms to invest more in AI, AI capabilities improved... It was a negative feedback loop with no natural brake.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
+    "severity": "Critical",
+    "explanation": "The essay presents the AI displacement spiral as a self-reinforcing loop with 'no natural brake.' But this traces out a story about quantities, how many workers, how much spending, while ignoring the most fundamental adjustment mechanism in economics: prices change.\n\nWhen large numbers of white-collar workers are displaced, several things happen that the essay doesn't account for. Wages adjust: if masses of workers are competing for fewer jobs, wages fall, making human labor cheaper relative to AI compute. At some point, for many tasks, it becomes cheaper to hire a person than to run the servers. That's a brake.\n\nThe return on investment falls: if consumer spending is declining, firms face weaker demand for their products. The payoff from any new investment, including AI investment, is lower. Why automate a production line if you can't sell the output?\n\nOther sectors expand: if millions of skilled workers are suddenly available at lower wages, sectors that were previously constrained by labor costs, manufacturing, construction, healthcare, education, can expand. Economists call this a general-equilibrium effect: the price adjustments that transmit a negative shock in one part of the economy can create opportunities elsewhere.\n\nNone of these brakes guarantee the transition is painless. But the claim that there's 'no natural brake' is inconsistent with basic price theory.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that a new technology will shrink
+  the economy by eliminating jobs in the affected sector.
+
+  ```json
+  {
+    "title": "Job Losses in One Sector Don't Mean Economy-Wide Contraction",
+    "quoted_passage": "The technology will eliminate 2 million jobs in the sector within five years, representing a devastating blow to the economy.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "MISSING_AGENT"],
+    "severity": "Critical",
+    "explanation": "Imagine a new machine cuts the cost of producing steel by half. The essay counts the steelworkers who lose their jobs and stops there. But cheaper steel has consequences that ripple through the entire economy.\n\nFirst, every industry that uses steel as an input (construction, auto manufacturing, appliances, infrastructure) now faces lower costs. Some of those savings are passed on to consumers as lower prices, and some are captured as higher profits that fund new investment. Either way, spending and hiring increase in those downstream sectors.\n\nSecond, consumers who pay less for steel-intensive products have money left over. That freed-up spending flows to restaurants, healthcare, entertainment, housing, or savings that fund investment elsewhere. These are real jobs created by the same force that destroyed the steelworker jobs.\n\nThe essay traces only the first-round effect (job losses in the directly affected sector) without following the resistance: lower costs, freed-up spending, and expansion in other parts of the economy. Whether the net effect on employment is positive or negative is an empirical question, but treating the gross job losses as the total economic impact ignores the general-equilibrium adjustments that have historically absorbed every major technological transition.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that cutting the corporate tax rate
+  will cost the government a specific amount of revenue.
+
+  ```json
+  {
+    "title": "Static Revenue Estimate Ignores Behavioral Response to Tax Change",
+    "quoted_passage": "Cutting the corporate rate from 28% to 21% would cost the Treasury $200 billion per year, based on current corporate profits.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "CETERIS_NON_PARIBUS"],
+    "severity": "Critical",
+    "explanation": "Imagine you run a toll bridge and cut the toll in half. Would your revenue fall by exactly 50%? Only if exactly the same number of cars crossed the bridge as before. In reality, a lower toll attracts more drivers, so revenue falls by less than half, and in some cases might even rise.\n\nThe essay calculates the revenue loss from a corporate tax cut by multiplying the rate change by today's corporate profits. This is what budget analysts call 'static scoring': it holds the tax base fixed while changing the rate. But the tax base is not fixed. When the corporate rate falls, after-tax returns to investment rise, which encourages more investment, more business formation, and potentially more economic activity. That larger tax base partially offsets the revenue loss from the lower rate.\n\nThe feedback doesn't stop there. More corporate investment means more demand for workers, which raises wages and income tax revenue. Higher business profits may flow through to shareholders, generating more capital gains tax revenue. These second-round effects can be substantial, and ignoring them systematically overstates the cost of the tax cut.\n\nThis does not mean the tax cut 'pays for itself,' as is sometimes claimed. The behavioral response partially offsets the static revenue loss, but the size of the offset is an empirical question. Serious fiscal analysis ('dynamic scoring') attempts to model these feedback effects rather than assuming they are zero.",
+    "dig_deeper": "The gap between static and dynamic scoring can be large. The Joint Committee on Taxation and CBO have found that dynamic effects offset 10-30% of the static cost of major tax reforms, depending on the specific provisions and the state of the economy. The key parameters are the elasticity of investment with respect to the after-tax return, the degree to which higher investment raises productivity and wages, and the time horizon (dynamic effects compound over time). An essay that relies entirely on static arithmetic is not wrong in the way that a computational error would be, but it is systematically biased toward overstating fiscal costs of rate reductions and understating fiscal costs of rate increases."
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay predicting that AI will cause the labor share
+  of GDP to fall dramatically.
+
+  ```json
+  {
+    "title": "The Falling Labor Share Is Assumed, Not Derived",
+    "quoted_passage": "Labor's share of GDP declined from 64% in 1974 to 56% in 2024, a four-decade grind lower driven by globalization, automation, and the steady erosion of worker bargaining power. In the four years since AI began its exponential improvement, that has dropped to 46%. The sharpest decline on record.",
+    "issue_types": ["EXOG_ENDO_CONFUSION"],
+    "severity": "Critical",
+    "explanation": "This is the single most important assumption in the entire essay, and it's stated as a fait accompli rather than derived from clearly specified economic forces.\n\nA falling labor share, meaning workers collectively receive a smaller fraction of total income, is an outcome, not a cause. Something in the economy has to change to produce it. An economist would ask: what specifically changed about the technology? There are many possibilities, and they have very different implications:\n\n- Did total factor productivity (TFP) rise, meaning AI just makes everything cheaper to produce? If so, both labor and capital benefit, and the labor share might not fall much at all.\n- Did the elasticity of substitution between labor and capital increase? This could push the labor share down, but whether it does depends on relative costs, and the direction isn't guaranteed.\n- Did the price of compute collapse? Surprisingly, this doesn't straightforwardly reduce the labor share; the effect depends on how substitutable AI and labor are.\n\nBy assuming the labor share simply falls to 46% without specifying the mechanism, the authors free themselves to cherry-pick the implications they want (lower wages, collapsing consumption) while ignoring the ones they don't (lower prices, rising real purchasing power). A rigorous version would start by specifying the technological change precisely, then work through all of its implications.",
+    "dig_deeper": "Whether a technological change raises or lowers labor's share of income depends on the elasticity of substitution between labor and capital.\n\nWith a standard Cobb-Douglas production technology, the labor share is completely invariant to changes in factor costs. If compute gets cheaper, firms use more of it, but labor's share stays exactly the same; the quantity effect is exactly offset by the price effect.\n\nThe labor share falls when compute gets cheaper only if the elasticity of substitution is above one, meaning AI and labor are sufficiently substitutable that firms shift spending toward the cheaper factor more than proportionally. If the elasticity is below one (labor and AI are more complementary), cheaper compute actually raises the labor share.\n\nThere is emerging evidence that AI may be more substitutable for labor than traditional capital, but this is an active area of research. The point is that a falling labor share is not an obvious or inevitable consequence of cheaper AI; it depends on empirical parameters the essay never discusses."
+  }
+  ```
+
+  **Source text context:** An essay projecting the fiscal impact of a policy by
+  assuming GDP continues growing at its historical trend.
+
+  ```json
+  {
+    "title": "GDP Growth Rate Treated as Fixed While Analyzing a Growth-Altering Shock",
+    "quoted_passage": "Assuming the economy continues growing at 2.5% per year, the new spending program will cost $4 trillion over the next decade.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay analyzes a major policy change while assuming that GDP growth continues at the historical average. But GDP growth is itself an outcome that depends on the forces the essay is discussing. A large spending program could raise or lower growth depending on what the money is spent on, how it is financed, and how the economy responds.\n\nIf the program is financed by borrowing, higher government debt could crowd out private investment, raising interest rates and slowing growth. If it is financed by taxes, the tax increase could reduce incentives to work or invest, also slowing growth. On the other hand, if the spending goes toward productive public investment (infrastructure, R&D, education), it could raise long-run productivity and increase growth.\n\nBy holding growth fixed at 2.5%, the essay avoids the most important question about the policy: does it make the economy larger or smaller than it would otherwise be? The fiscal cost estimate is only as good as the growth assumption, and that assumption is doing enormous work while receiving no scrutiny. A 0.5 percentage point change in the growth rate, compounded over a decade, would change the cost estimate by hundreds of billions of dollars.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay arguing that a large infrastructure program
+  will generate enormous GDP gains.
+
+  ```json
+  {
+    "title": "Implied Fiscal Multiplier Is Far Above Empirical Estimates",
+    "quoted_passage": "The $500 billion infrastructure package will generate $1.5 trillion in economic activity, a 3-to-1 return that makes the investment pay for itself.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Critical",
+    "explanation": "The essay claims a fiscal multiplier of 3: every dollar of government infrastructure spending generates three dollars of GDP. Let's check that against what economists have actually measured.\n\nThe empirical literature on fiscal multipliers is large and contested, but the range of credible estimates is much narrower than the essay implies. Most studies find multipliers between 0.5 and 1.5 for government spending in a developed economy near full employment. The higher end of that range (above 1) tends to apply during recessions, when there is slack in the economy and monetary policy is accommodative. At full employment, multipliers are typically below 1, because government spending crowds out private activity through higher interest rates and resource competition.\n\nA multiplier of 3 is not just optimistic; it is outside the range of any mainstream empirical estimate. To generate a multiplier that high, you would need an economy in deep recession with interest rates at zero and enormous idle capacity. The essay does not describe such conditions. At the implied multiplier, the spending would more than pay for itself through higher tax revenue, which is a claim that virtually no fiscal economist would endorse for a peacetime spending program.\n\nThe infrastructure investment may well be worthwhile on its merits, but the quantitative case the essay makes for it relies on a multiplier roughly two to four times larger than the evidence supports.",
+    "dig_deeper": "The multiplier debate has produced a wide range of estimates depending on methodology. Blanchard and Leigh (2013) found multipliers above 1 during the post-2008 austerity period, but that was a setting with binding zero lower bounds and severe output gaps. Ramey (2019) surveys the literature and puts the range at 0.6 to 1.0 for defense spending multipliers identified from historical episodes. Estimates from structural VAR models tend to cluster around 0.7 to 1.0. The highest credible estimates come from local multiplier studies (Nakamura and Steinsson, 2014), which find values around 1.5, but these measure the effect on a single region that receives federal spending while prices and interest rates are set nationally, so they overstate the aggregate effect. A multiplier of 3 would require mechanisms that no standard model produces under normal economic conditions."
+  }
+  ```
+
+  **Source text context:** An essay arguing that a policy will produce GDP gains
+  equal to a large fraction of the economy.
+
+  ```json
+  {
+    "title": "Claimed GDP Effect Exceeds the Size of the Affected Sector",
+    "quoted_passage": "Removing regulatory barriers in the energy sector would boost GDP by 8%, unlocking trillions in economic value.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "An 8% increase in GDP is an enormous number. US GDP is roughly $28 trillion, so the essay is claiming about $2.2 trillion in additional output from deregulating one sector. To put that in perspective, the entire US energy sector (oil, gas, electricity, mining) accounts for roughly 6-8% of GDP. The essay is claiming that removing regulatory barriers would generate new economic value roughly equal to the entire sector's current output, on top of what it already produces.\n\nFor this to be even arithmetically possible, deregulation would need to either double the energy sector's output or generate spillover effects in other sectors large enough to add up to 8% of GDP. The essay doesn't attempt either calculation. It asserts the 8% figure without specifying what channel produces gains of that magnitude.\n\nA more realistic framing would start from the sector's actual size and ask: what fraction of current output is lost to regulatory inefficiency? Empirical studies of deregulation episodes (airlines, trucking, telecommunications) typically find efficiency gains in the range of 10-30% of the affected sector's output. Applied to energy, that would be 0.6-2.4% of GDP, which is still a large and meaningful number, but a fraction of the essay's claim.",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing that income redistribution to capital
+  owners will collapse both consumption AND asset prices.
+
+  ```json
+  {
+    "title": "Redistribution to Savers Can't Crash Asset Prices",
+    "quoted_passage": "The owners of compute saw their wealth explode as labor costs vanished. Meanwhile, real wage growth collapsed.",
+    "issue_types": ["INTERNAL_CONTRADICTION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay's consumption-collapse story rests on a specific claim: income shifts from workers (who spend most of what they earn) to capital owners (who save most of what they earn), so aggregate consumption falls.\n\nThis reasoning has a problem that undermines the essay's own financial predictions. Where does the capital owners' additional saving go? If the labor share falls by 10 percentage points, that income shifts to capital owners. Even if those owners save a large fraction, that saving enters the financial system; it's invested in stocks, bonds, real estate, or other assets. Increased saving pushes down interest rates and pushes up asset prices.\n\nThis directly contradicts the essay's central financial prediction: a major equity crash. The very mechanism the essay relies on for the consumption collapse (redistribution to high-savers) is the same mechanism that should support the asset prices it predicts will crash. The essay wants income to shift to savers (to explain falling consumption) and asset prices to fall (to explain the financial crisis), but the first implies the opposite of the second.\n\nThe author would need to explain what breaks the link between higher saving and higher asset prices. That explanation might exist, perhaps the financial contagion channel is so severe that it overwhelms the saving effect, but the essay doesn't provide it.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay predicting that a policy shock will cause
+  both a deep recession and surging inflation.
+
+  ```json
+  {
+    "title": "Demand-Driven Recession and High Inflation Are Inconsistent",
+    "quoted_passage": "The resulting collapse in consumer spending will plunge the economy into recession, while prices spiral upward as businesses pass on higher costs to consumers.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Critical",
+    "explanation": "The essay predicts two things: a collapse in consumer spending (recession) and spiraling prices (inflation). But in the framework the essay itself is using, these predictions work against each other.\n\nA collapse in consumer spending is a negative demand shock. When people stop buying things, businesses face unsold inventory and weaker revenue. The typical response is to cut prices, not raise them, because firms are competing for a shrinking pool of spending. That is why recessions are historically associated with falling inflation or deflation, not price spirals.\n\nYou can get recession and inflation at the same time, but only from a supply shock: something that makes production more expensive or physically scarce (an oil embargo, a pandemic that shuts factories, a war that disrupts supply chains). In that case, output falls because firms cannot produce as much, while prices rise because goods are scarcer. The essay does not describe a supply shock. It describes a demand shock (consumers stop spending) and then asserts a supply-shock outcome (prices rise). The mechanism that produces the recession is the mechanism that should prevent the inflation.\n\nTo make both predictions consistent, the essay would need to identify a supply-side disruption operating alongside the demand collapse, and then explain why the supply effect dominates on prices while the demand effect dominates on output. That is a specific and demanding claim that requires its own argument.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay predicting an AI-driven financial crisis,
+  with detailed financial plumbing analysis.
+
+  ```json
+  {
+    "strengths": [
+      {
+        "title": "Financial Contagion Chain Is Conditionally Plausible",
+        "quoted_passage": "Private credit had grown from under $1 trillion in 2015 to over $2.5 trillion by 2026... Apollo bought Athene. Brookfield bought American Equity. KKR took Global Atlantic... The 'permanent capital' that was supposed to make the system resilient was... the savings of American households.",
+        "category": "conditionally_sound",
+        "explanation": "The financial plumbing narrative (PE firms using insurance companies as funding vehicles, ARR-backed lending, the opacity of cross-entity loss allocation, the eventual contagion to the mortgage market) is the strongest section of the essay. The institutional details are accurate, the risk channels are real, and the contagion logic is internally consistent.\n\nThis illustrates an important feature of economic analysis. Economics is at its core a conditional discipline: given a specific shock, we can trace its implications rigorously. The essay's financial analysis is a reasonable exercise in conditional prediction.\n\nThe critical caveat is that the entire chain is conditional on the labor displacement scenario developed in the earlier sections. If that premise doesn't hold, and the other analysis passes identify significant reasons to doubt it, the probability of this specific contagion path materializing is much lower than the essay implies.",
+        "conditionality": "Conditional on the labor displacement scenario playing out as described, which rests on foundational assumptions (the exogenously assumed labor share collapse, the missing GE adjustments) that the other analysis passes challenge."
+      },
+      {
+        "title": "Asks the Right Central Question",
+        "quoted_passage": null,
+        "category": "right_question",
+        "explanation": "The essay asks a genuinely important and underexplored question: 'what if rapid AI advancement is simultaneously bullish for productivity and bearish for the macroeconomy?' This is not a trivial or obvious framing. Most commentary treats AI as either utopian or dystopian; this essay tries to think through the macroeconomic transmission mechanisms.\n\nThe intellectual ambition is laudable even where the execution falls short. The question deserves the kind of rigorous treatment that the essay attempts but doesn't quite deliver.",
+        "conditionality": null
+      }
+    ]
+  }
+  ```
