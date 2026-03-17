@@ -8,7 +8,7 @@ const TABS = [
 
 const PROVIDERS = [
   { key: "anthropic", label: "Claude (Sonnet + Opus)" },
-  { key: "openai", label: "OpenAI (GPT-5 mini + GPT-5.2)" },
+  { key: "openai", label: "OpenAI (GPT-5 mini + GPT-5.4)" },
 ];
 
 export default function InputForm({ onSubmit }) {

@@ -24,7 +24,7 @@ system_prompt: |
 
   ### Macroeconomic Identities
 
-  These are not theories or assumptions; they are definitions that hold by construction:
+  These are not theories or assumptions. They are definitions that hold by construction:
 
   - **GDP identity:** GDP = C + I + G + NX (expenditure side), and equivalently
     GDP = total income = total production. If the author claims GDP is rising while
@@ -60,7 +60,7 @@ system_prompt: |
   - **Cost pass-through arithmetic:** When input costs rise, whether producers or
     consumers bear the cost depends on relative elasticities of supply and demand.
     A claim that firms can "pass through" cost increases to consumers requires
-    that demand is sufficiently inelastic; a claim that cost increases squeeze
+    that demand is sufficiently inelastic. A claim that cost increases squeeze
     margins requires that firms cannot raise prices.
   - **Quality-dimension consistency:** If an argument treats "quality" as a single
     axis but the product or service in question varies on multiple independent

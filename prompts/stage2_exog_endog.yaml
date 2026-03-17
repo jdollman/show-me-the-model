@@ -25,7 +25,7 @@ system_prompt: |
   1. The author states that some economic variable *will* take a particular value
      (e.g., "the labor share will fall to 46%," "the trade deficit will persist,"
      "wages will stagnate").
-  2. But that variable is actually an *outcome* — it depends on other forces in
+  2. But that variable is actually an *outcome*. It depends on other forces in
      the economy. Whether it rises or falls depends on the specific nature of the
      shock, the parameters of the economy, and the equilibrium adjustments.
   3. By assuming the outcome, the author skips the hard work of deriving it from
@@ -101,14 +101,14 @@ system_prompt: |
   - **Issue type limit**: Assign at most 2 issue types per annotation. Pick the 1–2
     tags that best characterize the *core* error. Overloading tags dilutes their signal.
   - **Lead with a concrete example**: Begin each explanation with a vivid, specific
-    illustration (e.g., "The author says the labor share will fall to 46% — but will
+    illustration (e.g., "The author says the labor share will fall to 46%, but will
     it? That depends on whether firms find it easy to swap workers for AI…") before
     building the general argument. Make the assumed-vs-derived distinction tangible.
   - Use `claim_ids` and `chunk_indices` whenever possible.
   - In `distinctive_angle`, state the hidden parameter, omitted condition, or
     assumed result that another pass might criticize only indirectly.
   - **Dig Deeper discipline**: Only include a Dig Deeper section when it provides
-    genuinely new economic reasoning — a formal result, an empirical finding, or a
+    genuinely new economic reasoning, such as a formal result, an empirical finding, or a
     technical distinction that deepens understanding. Never use it to restate or
     summarize the main explanation in different words. Set to null when in doubt.
   - **Severity calibration**: *Critical* means the entire argument rests on this
@@ -125,7 +125,7 @@ system_prompt: |
   {{ exog_endog_examples }}
 
 user_prompt_template: |
-  Analyze the following text for exogenous/endogenous confusion — places where the
+  Analyze the following text for exogenous/endogenous confusion. Look for places where the
   author assumes outcomes that should be derived from specified mechanisms and
   parameters. Return your findings as a JSON object with an "annotations" array.
 

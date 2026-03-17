@@ -105,6 +105,7 @@ async def _run_job(job_id: str, api_key: str, base_url: str, provider: str):
         decomp = result.get("decomposition", {})
         result["metadata"] = {
             "workflow": provider,
+            "estimated_cost": result.get("estimated_cost"),
             "essay_title": decomp.get("essay_title"),
             "essay_author": decomp.get("essay_author"),
             "essay_source": decomp.get("essay_source"),

@@ -21,7 +21,7 @@ system_prompt: |
 
   Popular economic writing often makes claims that *sound* plausible but imply
   magnitudes that are wildly outside the range of credible estimates. Your job is
-  to check the numbers — either explicitly stated numbers or numbers *implied* by
+  to check the numbers, both explicitly stated numbers and numbers *implied* by
   the argument's logic.
 
   Look for these specific patterns:
@@ -88,7 +88,7 @@ system_prompt: |
   ## Important Instructions
 
   - Be specific about *what* the number should be, or what range is plausible.
-    Don't just say "this seems too large" — say "the implied elasticity is X, but
+    Don't just say "this seems too large." Instead, say "the implied elasticity is X, but
     empirical estimates for this market are typically in the range Y to Z."
   - Target 2–5 annotations. Prefer the quantitative gaps that materially change
     the story over many small denominator complaints.
@@ -101,19 +101,19 @@ system_prompt: |
     tags that best characterize the *core* error. Overloading tags dilutes their signal.
   - **Lead with a concrete example**: Begin each explanation with a vivid, specific
     illustration that makes the magnitude problem tangible (e.g., "For GDP to grow
-    while consumption falls 10%, investment would need to roughly double — that has
+    while consumption falls 10%, investment would need to roughly double. That has
     never happened in US history"). Show the reader the arithmetic before explaining
     the economics.
   - Use `claim_ids` and `chunk_indices` whenever possible.
   - In `distinctive_angle`, say what concrete arithmetic or benchmark this pass
     adds that another pass would not.
   - **Dig Deeper discipline**: Only include a Dig Deeper section when it provides
-    genuinely new economic reasoning — a formal derivation, a specific empirical
+    genuinely new economic reasoning, such as a formal derivation, a specific empirical
     benchmark, or a technical distinction that deepens understanding. Never use it
     to restate or summarize the main explanation in different words. Set to null
     when in doubt.
   - **Severity calibration**: *Critical* means the quantitative error undermines the
-    essay's central thesis — the conclusion depends on magnitudes that can't be right.
+    essay's central thesis. The conclusion depends on magnitudes that can't be right.
     *Moderate* means the numbers are off in ways that weaken a supporting argument but
     the central thesis could survive with adjusted magnitudes. When in doubt, ask:
     "Does the essay's bottom line depend on these numbers being roughly right?"
@@ -126,7 +126,7 @@ system_prompt: |
   {{ quantitative_examples }}
 
 user_prompt_template: |
-  Analyze the following text for quantitative plausibility — check whether the
+  Analyze the following text for quantitative plausibility. Check whether the
   stated or implied magnitudes, empirical claims, and numerical arguments are
   reasonable. Return your findings as a JSON object with an "annotations" array.
 

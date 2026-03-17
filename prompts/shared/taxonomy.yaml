@@ -6,8 +6,8 @@ issue_types:
     name: "Identity Violation"
     description: >
       Violates a national accounting identity or budget constraint. GDP = C + I + G + NX
-      must hold; stock-flow relationships must be respected; balance of payments must balance.
-    example: "GDP rises while consumption falls — what's the offset?"
+      must hold. Stock-flow relationships must be respected. Balance of payments must balance.
+    example: "GDP rises while consumption falls. What's the offset?"
 
   PARTIAL_EQUILIBRIUM:
     name: "Partial Equilibrium Reasoning"
@@ -76,14 +76,14 @@ issue_types:
       Individual claims are each plausible in isolation, but the magnitudes required to
       make them simultaneously true are implausible. The arithmetic doesn't add up when
       you put all the claims together.
-    example: "GDP grows while consumption (70% of GDP) collapses — requires investment to roughly double"
+    example: "GDP grows while consumption (70% of GDP) collapses, requiring investment to roughly double"
 
   SUTVA_VIOLATION:
     name: "SUTVA Violation"
     description: >
       Treats a shock as uniformly negative without considering that general-equilibrium
       price adjustments can benefit other sectors or agents. Named after the 'stable unit
-      treatment value assumption' in causal inference — the idea that one agent's treatment
+      treatment value assumption' in causal inference, the idea that one agent's treatment
       doesn't affect another's outcomes.
     example: "AI displaces white-collar workers, but cheaper labor benefits other sectors"
 

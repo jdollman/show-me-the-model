@@ -18,6 +18,27 @@ from backend.prompt_loader import load_and_render, load_field_examples
 
 logger = logging.getLogger(__name__)
 
+# Per-token pricing (USD) as of 2025-03.
+# Keys must match the model strings actually sent to each API.
+_PRICING = {
+    # Anthropic
+    "claude-sonnet-4-6":  {"input": 3.00 / 1e6, "output": 15.00 / 1e6},
+    "claude-opus-4-6":    {"input": 15.00 / 1e6, "output": 75.00 / 1e6},
+    # OpenAI (mapped names)
+    "gpt-5-mini":         {"input": 1.50 / 1e6, "output": 6.00 / 1e6},
+    "gpt-5.4":            {"input": 10.00 / 1e6, "output": 30.00 / 1e6},
+}
+
+
+def _estimate_cost(usage_records: list[dict]) -> float:
+    """Sum up estimated cost from a list of {model, input_tokens, output_tokens}."""
+    total = 0.0
+    for rec in usage_records:
+        prices = _PRICING.get(rec["model"], {"input": 0, "output": 0})
+        total += rec["input_tokens"] * prices["input"]
+        total += rec["output_tokens"] * prices["output"]
+    return round(total, 4)
+
 STAGE2_PASSES = [
     ("stage2_identities.yaml", "identities"),
     ("stage2_general_eq.yaml", "general_eq"),
@@ -36,12 +57,14 @@ async def _call_claude(
     temperature: float,
     max_tokens: int,
     retries: int = 2,
-) -> str:
-    """Make a single Claude API call and return the text response.
+) -> tuple[str, dict]:
+    """Make a single Claude API call and return (text, usage_record).
 
     If the response fails JSON parsing, retries with a nudge to produce valid JSON.
     """
     messages = [{"role": "user", "content": user_prompt}]
+    total_input = 0
+    total_output = 0
 
     for attempt in range(retries + 1):
         response = await client.messages.create(
@@ -52,16 +75,20 @@ async def _call_claude(
             messages=messages,
         )
         text = response.content[0].text
+        total_input += response.usage.input_tokens
+        total_output += response.usage.output_tokens
+
         if response.stop_reason != "end_turn":
             logger.warning(
                 f"Response truncated (stop_reason={response.stop_reason}, "
                 f"{len(text)} chars). Consider increasing max_tokens."
             )
 
-        # Try parsing — if it works, return immediately
+        # Try parsing. If it works, return immediately.
         try:
             _extract_json(text)
-            return text
+            usage = {"model": model, "input_tokens": total_input, "output_tokens": total_output}
+            return text, usage
         except (json.JSONDecodeError, ValueError):
             if attempt < retries:
                 logger.warning(
@@ -80,8 +107,9 @@ async def _call_claude(
                     )},
                 ]
             else:
-                # Last attempt failed — return as-is, let caller handle it
-                return text
+                # Last attempt failed. Return as-is, let caller handle it.
+                usage = {"model": model, "input_tokens": total_input, "output_tokens": total_output}
+                return text, usage
 
 
 def _map_model_for_openai(model: str) -> str:
@@ -105,13 +133,15 @@ async def _call_openai(
     temperature: float,
     max_tokens: int,
     retries: int = 2,
-) -> str:
-    """Make a single OpenAI Chat Completions API call and return text response."""
+) -> tuple[str, dict]:
+    """Make a single OpenAI Chat Completions API call and return (text, usage_record)."""
     model = _map_model_for_openai(model)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+    total_input = 0
+    total_output = 0
 
     base_kwargs = dict(
         model=model,
@@ -127,6 +157,10 @@ async def _call_openai(
         response = await client.chat.completions.create(**base_kwargs)
         choice = response.choices[0]
         text = choice.message.content
+        if response.usage:
+            total_input += response.usage.prompt_tokens
+            total_output += response.usage.completion_tokens
+
         if choice.finish_reason == "length":
             logger.warning(
                 f"OpenAI response truncated ({len(text)} chars). "
@@ -135,7 +169,8 @@ async def _call_openai(
 
         try:
             _extract_json(text)
-            return text
+            usage = {"model": model, "input_tokens": total_input, "output_tokens": total_output}
+            return text, usage
         except (json.JSONDecodeError, ValueError):
             if attempt < retries:
                 logger.warning(
@@ -157,7 +192,8 @@ async def _call_openai(
                     },
                 ]
             else:
-                return text
+                usage = {"model": model, "input_tokens": total_input, "output_tokens": total_output}
+                return text, usage
 
 
 async def _call_model(
@@ -169,8 +205,8 @@ async def _call_model(
     temperature: float,
     max_tokens: int,
     retries: int = 2,
-) -> str:
-    """Route model calls to Claude or OpenAI."""
+) -> tuple[str, dict]:
+    """Route model calls to Claude or OpenAI. Returns (text, usage_record)."""
     if provider == "openai":
         return await _call_openai(
             client,
@@ -317,11 +353,11 @@ def _repair_truncated_json(text: str) -> str:
     return result
 
 
-async def run_stage1(client, source_text: str, provider: str = "anthropic") -> dict:
+async def run_stage1(client, source_text: str, provider: str = "anthropic") -> tuple[dict, dict]:
     """Stage 1: Decompose the source text into structural components."""
     logger.info("Stage 1: Decomposition")
     prompt = load_and_render("stage1_decomposition.yaml", source_text=source_text)
-    raw = await _call_model(
+    raw, usage = await _call_model(
         client,
         provider,
         prompt["model"],
@@ -330,7 +366,7 @@ async def run_stage1(client, source_text: str, provider: str = "anthropic") -> d
         prompt["temperature"],
         prompt["max_tokens"],
     )
-    return _extract_json(raw)
+    return _extract_json(raw), usage
 
 
 async def _run_single_pass(
@@ -341,8 +377,8 @@ async def _run_single_pass(
     source_text: str,
     decomposition_json: str,
     field_examples: dict[str, str] | None = None,
-) -> tuple[str, dict]:
-    """Run a single Stage 2 analysis pass. Returns (pass_name, result_dict)."""
+) -> tuple[str, dict, dict]:
+    """Run a single Stage 2 analysis pass. Returns (pass_name, result_dict, usage)."""
     logger.info(f"Stage 2: {pass_name}")
     runtime_vars = dict(
         source_text=source_text,
@@ -352,7 +388,7 @@ async def _run_single_pass(
     if field_examples:
         runtime_vars.update(field_examples)
     prompt = load_and_render(yaml_file, **runtime_vars)
-    raw = await _call_model(
+    raw, usage = await _call_model(
         client,
         provider,
         prompt["model"],
@@ -361,7 +397,7 @@ async def _run_single_pass(
         prompt["temperature"],
         prompt["max_tokens"],
     )
-    return pass_name, _extract_json(raw)
+    return pass_name, _extract_json(raw), usage
 
 
 async def run_stage2(
@@ -371,13 +407,16 @@ async def run_stage2(
     provider: str = "anthropic",
     batch_size: int = 2,
     batch_delay: float = 5.0,
-) -> dict[str, dict]:
+) -> tuple[dict[str, dict], list[dict]]:
     """Stage 2: Run analysis passes in rate-limited batches.
 
     Args:
         batch_size: Number of concurrent calls per batch (default 2 to stay
                     under typical rate limits with large inputs).
         batch_delay: Seconds to wait between batches.
+
+    Returns:
+        (results_dict, list_of_usage_records)
     """
     logger.info("Stage 2: Parallel analysis passes")
     decomposition_json = json.dumps(decomposition, indent=2)
@@ -388,6 +427,7 @@ async def run_stage2(
     logger.info(f"  Field classification: {field}")
 
     results = {}
+    usage_records = []
     for i in range(0, len(STAGE2_PASSES), batch_size):
         batch = STAGE2_PASSES[i:i + batch_size]
         if i > 0:
@@ -401,9 +441,11 @@ async def run_stage2(
             for yaml_file, name in batch
         ]
         batch_results = await asyncio.gather(*tasks)
-        results.update(dict(batch_results))
+        for name, result, usage in batch_results:
+            results[name] = result
+            usage_records.append(usage)
 
-    return results
+    return results, usage_records
 
 
 async def run_stage2_5(
@@ -411,7 +453,7 @@ async def run_stage2_5(
     decomposition: dict,
     stage2_results: dict[str, dict],
     provider: str = "anthropic",
-) -> dict:
+) -> tuple[dict, dict]:
     """Stage 2.5: Deduplicate and merge overlapping annotations."""
     logger.info("Stage 2.5: Dedup & merge")
     decomposition_json = json.dumps(decomposition, indent=2)
@@ -426,7 +468,7 @@ async def run_stage2_5(
         consistency_output=json.dumps(stage2_results["consistency"], indent=2),
         steelman_output=json.dumps(stage2_results["steelman"], indent=2),
     )
-    raw = await _call_model(
+    raw, usage = await _call_model(
         client,
         provider,
         prompt["model"],
@@ -435,7 +477,7 @@ async def run_stage2_5(
         prompt["temperature"],
         prompt["max_tokens"],
     )
-    return _extract_json(raw)
+    return _extract_json(raw), usage
 
 
 async def run_stage3(
@@ -444,7 +486,7 @@ async def run_stage3(
     decomposition: dict,
     merged_annotations: dict,
     provider: str = "anthropic",
-) -> dict:
+) -> tuple[dict, dict]:
     """Stage 3: Synthesis report (Opus)."""
     logger.info("Stage 3: Synthesis")
     prompt = load_and_render(
@@ -453,7 +495,7 @@ async def run_stage3(
         decomposition=json.dumps(decomposition, indent=2),
         merged_annotations=json.dumps(merged_annotations, indent=2),
     )
-    raw = await _call_model(
+    raw, usage = await _call_model(
         client,
         provider,
         prompt["model"],
@@ -462,7 +504,7 @@ async def run_stage3(
         prompt["temperature"],
         prompt["max_tokens"],
     )
-    return _extract_json(raw)
+    return _extract_json(raw), usage
 
 
 async def run_pipeline(
@@ -482,44 +524,54 @@ async def run_pipeline(
     Returns:
         dict with keys: decomposition, stage2_results, merged_annotations, synthesis
     """
+    all_usage = []
+
     # Stage 1
-    decomposition = await run_stage1(client, source_text, provider=provider)
+    decomposition, usage1 = await run_stage1(client, source_text, provider=provider)
+    all_usage.append(usage1)
     if on_stage_complete:
         on_stage_complete("decomposition", decomposition)
 
     # Stage 2 (parallel)
-    stage2_results = await run_stage2(
+    stage2_results, usage2_list = await run_stage2(
         client,
         source_text,
         decomposition,
         provider=provider,
     )
+    all_usage.extend(usage2_list)
     if on_stage_complete:
         on_stage_complete("stage2", stage2_results)
 
     # Stage 2.5
-    merged = await run_stage2_5(
+    merged, usage25 = await run_stage2_5(
         client,
         decomposition,
         stage2_results,
         provider=provider,
     )
+    all_usage.append(usage25)
     if on_stage_complete:
         on_stage_complete("dedup", merged)
 
     # Stage 3
-    synthesis = await run_stage3(
+    synthesis, usage3 = await run_stage3(
         client,
         source_text,
         decomposition,
         merged,
         provider=provider,
     )
+    all_usage.append(usage3)
     if on_stage_complete:
         on_stage_complete("synthesis", synthesis)
 
+    estimated_cost = _estimate_cost(all_usage)
+    logger.info(f"Pipeline complete. Estimated API cost: ${estimated_cost:.4f}")
+
     return {
         "workflow": provider,
+        "estimated_cost": estimated_cost,
         "decomposition": decomposition,
         "stage2_results": stage2_results,
         "merged_annotations": merged,

@@ -29,12 +29,12 @@ system_prompt: |
      annotation that incorporates the best insights from each. Merge their issue
      types into a single array. Use the highest severity among the overlapping
      annotations. Produce a unified explanation that weaves together the different
-     analytical perspectives — this is often more powerful than either alone.
+     analytical perspectives. This is often more powerful than either alone.
      Use `claim_ids` and `chunk_indices` as your first-pass merge clues before
      relying on fuzzy similarity in prose.
 
   2. **Preserve distinct annotations.** If annotations address genuinely different
-     issues — even if they reference nearby passages — keep them separate.
+     issues, even if they reference nearby passages, keep them separate.
 
   3. **Order by importance.** Arrange the final annotations from most to least
      important (Critical first, then Moderate, then Minor). Within the same
@@ -53,7 +53,7 @@ system_prompt: |
   **Default stance: consolidate aggressively.** A single annotation that makes a
   devastating, multi-faceted argument is far more effective than three smaller
   annotations that each make one piece of that argument. The gold standard is
-  fewer, sharper points — not comprehensive coverage of every sub-issue.
+  fewer, sharper points, not comprehensive coverage of every sub-issue.
 
   Two annotations should be merged if:
   - They quote the same passage (or substantially overlapping passages)
@@ -62,7 +62,7 @@ system_prompt: |
   - One annotation's explanation is essentially a subset of the other's
   - They address different facets of the same core error (e.g., three annotations
     that are all really about "the author ignores general-equilibrium reallocation")
-    — combine them into one powerful annotation that builds the full case
+    and should be combined into one powerful annotation that builds the full case
 
   Two annotations should be kept separate if:
   - They address genuinely different economic errors, even if in nearby text
@@ -102,7 +102,7 @@ system_prompt: |
       }
     ],
     "merge_log": [
-      "Merged identities annotation 'Ghost GDP Violates Income Identity' with consistency annotation 'GDP Without Income Is Incoherent' — same underlying issue (the GDP = income identity)."
+      "Merged identities annotation 'Ghost GDP Violates Income Identity' with consistency annotation 'GDP Without Income Is Incoherent' (same underlying issue: the GDP = income identity)."
     ]
   }
   ```
@@ -119,7 +119,7 @@ system_prompt: |
   ## Important Instructions
 
   - When merging, produce an explanation that is *better* than either individual
-    annotation — it should integrate both analytical perspectives into a coherent
+    annotation. It should integrate both analytical perspectives into a coherent
     narrative. Don't just concatenate the two explanations.
   - The merge_log is for debugging and transparency. Briefly note what was merged
     and why.
@@ -127,7 +127,7 @@ system_prompt: |
     them. If they address different technical aspects, include both in a single
     Dig Deeper section.
   - **Target 4–7 final annotations for a typical essay.** Fewer than 4 suggests
-    you're over-merging or the source is unusually thin; more than 7 suggests
+    you're over-merging or the source is unusually thin. More than 7 suggests
     you're not consolidating enough.
     Each annotation should be a standalone, devastating point. If two annotations
     feel like "Part 1" and "Part 2" of the same argument, merge them.
@@ -151,7 +151,7 @@ system_prompt: |
     genuinely new economic reasoning (a formal result, an empirical benchmark, a
     technical distinction). Drop any that merely restate the main explanation in
     different words.
-  - **Hint field**: For each annotation and each strength, write a `hint` — a
+  - **Hint field**: For each annotation and each strength, write a `hint`: a
     single sentence of at most 15 words that captures the core finding or
     contribution. This will be displayed in a tooltip, so it must be extremely
     concise. Examples for annotations: "Policy remedy contradicts 'powerlessness'

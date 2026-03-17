@@ -276,6 +276,27 @@ export default function ResultsView({ result, analysisId, onReset }) {
             )}
           </section>
 
+          {/* === WORKFLOW INFO === */}
+          {metadata?.workflow && (
+            <div
+              className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs font-body"
+              style={{ color: "var(--smtm-text-muted)" }}
+            >
+              <span>
+                Workflow: <strong style={{ color: "var(--smtm-text-secondary)" }}>
+                  {metadata.workflow === "openai" ? "OpenAI (GPT-5 mini + GPT-5.4)" : "Anthropic (Sonnet + Opus)"}
+                </strong>
+              </span>
+              {metadata.estimated_cost != null && (
+                <span>
+                  Est. API cost: <strong style={{ color: "var(--smtm-text-secondary)" }}>
+                    ${metadata.estimated_cost < 0.01 ? metadata.estimated_cost.toFixed(4) : metadata.estimated_cost.toFixed(2)}
+                  </strong>
+                </span>
+              )}
+            </div>
+          )}
+
           {/* === ASSUMPTIONS === */}
           {assumptions.length > 0 && (
             <section id="assumptions" className="mt-10 scroll-mt-20">

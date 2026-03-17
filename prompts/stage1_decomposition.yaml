@@ -15,7 +15,7 @@ system_prompt: |
 
   You are the first stage of a multi-stage economic analysis pipeline. Your job is
   to extract the structural skeleton of the argument presented in the source text.
-  You are NOT evaluating or critiquing the argument — later stages will do that.
+  You are NOT evaluating or critiquing the argument. Later stages will do that.
   Your job is accurate, neutral extraction.
 
   Read the source text carefully and produce a structured JSON decomposition with
@@ -45,7 +45,7 @@ system_prompt: |
       }
     ],
     "stated_assumptions": [
-      "An assumption the author makes explicitly — something they acknowledge as a premise."
+      "An assumption the author makes explicitly (something they acknowledge as a premise)."
     ],
     "causal_chain": "The author's implicit causal logic, expressed as: A → B → C → conclusion. Trace the full chain from the exogenous shock or premise through to the final prediction or policy recommendation.",
     "policy_or_shock": "What is the exogenous driver? What is the 'if' in the author's 'if-then' argument? This could be a technology shock, policy change, external event, or assumed trend.",
@@ -74,7 +74,7 @@ system_prompt: |
     in the argument. Downstream stages should prioritize these if they must choose.
   - **key_claims**: Extract 5–15 specific claims. Each should be a distinct
     assertion, not a restatement of the thesis. Include the exact quoted passage.
-    Focus on claims that are analytically important — claims about magnitudes,
+    Focus on claims that are analytically important: claims about magnitudes,
     causal relationships, or mechanisms, not rhetorical flourishes.
     Assign stable `claim_id`s in order (`C1`, `C2`, ...). Include the
     `supporting_chunk_indices` that anchor the claim in `text_chunks`. The
@@ -87,12 +87,12 @@ system_prompt: |
     Use → to show causal links. If the author has multiple causal chains (e.g.,
     a real economy channel and a financial contagion channel), list them separately.
   - **policy_or_shock**: Identify what the author treats as the exogenous driver.
-    This is critical for downstream analysis — it determines whether the author
+    This is critical for downstream analysis. It determines whether the author
     is treating something as given that is actually an equilibrium outcome.
   - **text_chunks**: Break the full text into paragraph-sized chunks (roughly
     100–300 words each). Preserve the original text exactly. These chunks serve
     as anchors for the annotation UI. Use natural paragraph breaks where they
-    exist; for very long paragraphs, split at sentence boundaries.
+    exist. For very long paragraphs, split at sentence boundaries.
   - **notable_ambiguities**: Use this sparingly. Only include ambiguities that a
     fair downstream reviewer should keep in mind to avoid overconfident criticism.
 
@@ -121,7 +121,7 @@ system_prompt: |
     "key_claims": [
       {
         "claim_id": "C1",
-        "claim": "GDP is growing while the consumer economy is withering — 'Ghost GDP' that shows up in national accounts but doesn't circulate.",
+        "claim": "GDP is growing while the consumer economy is withering, producing 'Ghost GDP' that shows up in national accounts but doesn't circulate.",
         "quoted_passage": "When cracks began appearing in the consumer economy, economic pundits popularized the phrase 'Ghost GDP': output that shows up in the national accounts but never circulates through the real economy.",
         "supporting_chunk_indices": [3],
         "role_in_argument": "prediction"

@@ -77,7 +77,7 @@ system_prompt: |
     spelled GDP correctly"). Identify real intellectual contributions.
   - Be concise. Since everything in this output already appears in a section
     labeled "What the Essay Gets Right," don't waste words restating that the
-    author is correct — just explain the substance of the point. Avoid filler
+    author is correct. Just explain the substance of the point. Avoid filler
     like "The author is on solid ground here" or "This is a genuine strength."
   - Most essays will have 2–5 genuine strengths. If you can't find any, the essay
     is either extremely poor or you're not looking hard enough.
@@ -85,7 +85,7 @@ system_prompt: |
     can tie strengths back to the same structural map used by the critiques.
   - For conditionally sound analysis, be explicit about the conditions: "This
     contagion chain is internally consistent IF the labor displacement scenario
-    plays out as described — but that premise is doing a lot of heavy lifting."
+    plays out as described, but that premise is doing a lot of heavy lifting."
   - Don't repeat criticisms that the other analysis passes will cover. Your job
     is specifically to find the positive.
   - It's OK to note that a strength is limited in scope. "The author correctly
@@ -100,7 +100,7 @@ system_prompt: |
   {{ steelman_examples }}
 
 user_prompt_template: |
-  Analyze the following text for its genuine strengths — what does the essay get
+  Analyze the following text for its genuine strengths. What does the essay get
   right, where does it raise legitimate concerns, and where is the analysis
   conditionally sound? Return your findings as a JSON object with a "strengths"
   array.
