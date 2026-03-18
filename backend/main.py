@@ -15,6 +15,9 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadF
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from openai import AsyncOpenAI
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sse_starlette.sse import EventSourceResponse
 
 from backend.email_notify import send_results_email
@@ -26,6 +29,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 store = JobStore()
+limiter = Limiter(key_func=get_remote_address)
+
+EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
 # --- Cleanup task ---
@@ -45,13 +51,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="Show Me the Model", version="0.1.0", lifespan=lifespan)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please try again later."},
+    )
 
 # CORS
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+allowed_origins = [o.strip() for o in allowed_origins if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_origins=allowed_origins if allowed_origins else ["*"],
+    allow_credentials=bool(allowed_origins),  # only with explicit origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -190,6 +206,7 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/analyze")
+@limiter.limit("10/minute")
 async def analyze(
     request: Request,
     text: str | None = Form(None),
@@ -216,6 +233,9 @@ async def analyze(
     if not api_key:
         raise HTTPException(status_code=401, detail="X-Api-Key header is required")
 
+    if email and not EMAIL_RE.match(email):
+        raise HTTPException(status_code=400, detail="Invalid email address format")
+
     source_text, input_mode, source_url = await _resolve_source_text(text, url, file, body)
 
     # Create job and spawn background task
@@ -225,7 +245,7 @@ async def analyze(
         source_url=source_url,
         input_mode=input_mode,
     )
-    base_url = str(request.base_url).rstrip("/")
+    base_url = os.getenv("BASE_URL", str(request.base_url).rstrip("/"))
     asyncio.create_task(_run_job(job.id, api_key, base_url, provider))
 
     return {

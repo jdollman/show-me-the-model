@@ -8,3 +8,4 @@ sse-starlette>=2.0.0
 trafilatura>=1.12.0
 pymupdf>=1.24.0
 python-multipart>=0.0.9
+slowapi>=0.1.9

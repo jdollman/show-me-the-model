@@ -12,10 +12,10 @@
 ## Server Details
 
 - **Domain**: `showmethemodel.io`
-- **IP Address**: `64.225.18.170`
+- **IP Address**: `YOUR_SERVER_IP`
 - **Droplet size**: Basic $6/mo (1 GB RAM, 1 vCPU, 25 GB disk)
 - **OS**: Ubuntu 24.04 LTS
-- **SSH access**: `ssh root@64.225.18.170`
+- **SSH access**: `ssh root@YOUR_SERVER_IP`
 
 ## Directory Layout on Server
 
@@ -42,8 +42,8 @@
 
 | Type | Name | Content |
 |------|------|---------|
-| A | `@` | `64.225.18.170` |
-| A | `www` | `64.225.18.170` |
+| A | `@` | `YOUR_SERVER_IP` |
+| A | `www` | `YOUR_SERVER_IP` |
 | TXT | `resend._domainkey` | *(DKIM key for Resend)* |
 | MX | `send` | `feedback-smtp.us-east-1.amazonses.com` (priority 10) |
 | TXT | `send` | `v=spf1 include:amazonses.com ~all` |
@@ -54,7 +54,7 @@
 SSH into the server and run:
 
 ```bash
-ssh root@64.225.18.170
+ssh root@YOUR_SERVER_IP
 cd /opt/show-me-the-model
 git pull
 ```

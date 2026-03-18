@@ -1,7 +1,10 @@
 """Text extraction from URLs, PDFs, and raw text with validation."""
 
+import ipaddress
 import logging
 import re
+import socket
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +19,26 @@ URL_PATTERN = re.compile(
 )
 
 
+def _is_private_ip(hostname: str) -> bool:
+    """Check if a hostname resolves to a private/reserved IP address."""
+    try:
+        for info in socket.getaddrinfo(hostname, None):
+            addr = ipaddress.ip_address(info[4][0])
+            if addr.is_private or addr.is_reserved or addr.is_loopback or addr.is_link_local:
+                return True
+    except socket.gaierror:
+        pass
+    return False
+
+
 def validate_url(url: str) -> str:
     """Validate and return the URL, or raise ValueError."""
     url = url.strip()
     if not URL_PATTERN.match(url):
         raise ValueError(f"Invalid URL format: {url}")
+    hostname = urlparse(url).hostname
+    if not hostname or _is_private_ip(hostname):
+        raise ValueError("URLs pointing to internal/private networks are not allowed")
     return url
 
 
