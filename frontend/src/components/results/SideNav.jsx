@@ -5,6 +5,7 @@ const SECTIONS = [
   { id: "contradictions", label: "Contradictions", icon: "⚡" },
   { id: "strengths", label: "Strengths", icon: "✓" },
   { id: "alternative", label: "Rigorous Alternative", icon: "↗" },
+  { id: "methodology", label: "How This Works", icon: "?" },
 ];
 
 export default function SideNav({ activeSection }) {

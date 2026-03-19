@@ -6,6 +6,7 @@ import ContradictionCard from "./results/ContradictionCard";
 import SideNav from "./results/SideNav";
 import AnnotationCard from "./AnnotationCard";
 import DecompositionView from "./DecompositionView";
+import MethodologySection from "./results/MethodologySection";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { useTheme } from "../context/ThemeContext";
 
@@ -105,6 +106,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
       "contradictions",
       "strengths",
       "alternative",
+      "methodology",
     ];
     const observer = new IntersectionObserver(
       (entries) => {
@@ -530,6 +532,16 @@ export default function ResultsView({ result, analysisId, onReset }) {
               </div>
             </section>
           )}
+
+          {/* === METHODOLOGY === */}
+          <section id="methodology" className="mt-10 scroll-mt-20">
+            <SectionHeader
+              title="How This Works"
+              subtitle="Six analytical lenses applied to every essay"
+              icon="?"
+            />
+            <MethodologySection />
+          </section>
 
           {/* === DECOMPOSITION === */}
           <div className="mt-10">
