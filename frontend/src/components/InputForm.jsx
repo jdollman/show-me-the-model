@@ -182,12 +182,12 @@ export default function InputForm({ onSubmit }) {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={12}
-                placeholder="Paste the essay or article text here..."
+                placeholder={"# Notes for AI agents:\n# Source URL: http://xxxxxxxx\n# Author: xxxxxxxx\n# Title: xxxxxxxx\n\nPaste the essay or article text here..."}
                 className={`w-full rounded-md border px-3 py-2 text-sm resize-y ${inputFocus}`}
                 style={inputBase}
               />
               <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--smtm-text-muted)" }}>
-                X/Twitter threads must be copied and pasted manually for now. Include the author&apos;s name and the source URL at the top of the pasted text so they appear in the analysis results.
+                X/Twitter threads must be copied and pasted manually for now. Fill in the source URL, author, and title in the placeholder lines above so they appear in the analysis results.
               </p>
             </>
           )}
