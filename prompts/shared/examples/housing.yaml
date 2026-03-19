@@ -1,0 +1,173 @@
+# Field-specific examples: Housing Economics
+# For essays about housing supply, affordability, zoning, rent control, development.
+
+identities_examples: |
+  Here is an example of a good annotation from a similar analysis:
+
+  **Source text context:** An essay arguing that building luxury apartments makes
+  housing less affordable because it raises average prices in the neighborhood.
+
+  ```json
+  {
+    "title": "Average Price Rising Does Not Mean Affordability Falling",
+    "quoted_passage": "Since 2015, average rents in the neighborhood have risen 30%. The new luxury towers are clearly making things worse, not better.",
+    "issue_types": ["IDENTITY_VIOLATION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "Average rents can rise even when every individual renter is paying less. This is a composition effect. When a new luxury building opens, it adds high-rent units to the neighborhood's stock. The average rent rises mechanically, even if rents in every pre-existing building stayed flat or fell.\n\nThink of it like a school where the average test score rises because high-scoring students transferred in, not because any individual student improved. The essay confuses a change in the mix for a change in the price. To measure the effect of new construction on affordability, you need to compare rents for the same type of unit before and after, not average rents across a changing stock.\n\nThis is a statistical identity issue, not an empirical debate. Whatever one believes about the net effect of new construction on neighborhood rents, using average rent across a changing stock as the measure is simply the wrong metric. It conflates compositional change with price change.",
+    "dig_deeper": null
+  }
+  ```
+
+  Here is a second example, about flows versus stocks in the housing market:
+
+  ```json
+  {
+    "title": "Construction Rates Must Be Compared to Household Formation, Not Just the Existing Stock",
+    "quoted_passage": "The city built 5,000 new units last year, adding just 1% to the housing stock. That can't meaningfully affect prices.",
+    "issue_types": ["QUANTITATIVE_COMPOSSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "Housing markets are driven by the balance between new supply (construction minus demolitions and conversions) and new demand (household formation plus net in-migration). The relevant comparison is not new units versus the total stock, but new units versus the change in the number of households seeking housing.\n\nIf the city added 4,000 new households last year but built 5,000 units, that surplus of 1,000 units puts downward pressure on prices and vacancies, even though 5,000 is a small fraction of the total stock. The stock comparison makes every year's construction look trivial, which is misleading because prices are set at the margin. It is the last few hundred units, the difference between a 3% vacancy rate and a 5% vacancy rate, that determines whether landlords have pricing power or tenants do.\n\nThis is the same logic that applies in any market: the price of oil does not depend on total global reserves but on the gap between current production and current consumption. A small change in the flow can cause a large change in price.",
+    "dig_deeper": null
+  }
+  ```
+
+general_eq_examples: |
+  **Source text context:** An essay arguing that blocking a proposed apartment
+  building preserves neighborhood affordability.
+
+  ```json
+  {
+    "title": "Blocking Supply in One Location Redirects Demand, Not Eliminates It",
+    "quoted_passage": "By defeating the 200-unit development, the neighborhood has protected itself from the wave of gentrification that follows luxury construction.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "MISSING_AGENT"],
+    "severity": "Critical",
+    "explanation": "The essay traces the effect of blocking the building on the immediate neighborhood and stops. But the 200 households who would have moved into those units still need somewhere to live. They do not disappear. They compete for existing housing in the same city, bidding up rents in other neighborhoods.\n\nWhen a high-demand city blocks new construction in one location, it does not reduce the total number of people who want to live there. It forces them into the existing housing stock, putting pressure on tenants elsewhere who have less bargaining power. The neighborhood that blocked the building may see stable rents, but the cost is exported to other parts of the city.\n\nThis is a textbook partial-equilibrium error: analyzing the effect on one neighborhood while holding the rest of the city fixed. In a city where total housing demand exceeds total housing supply, blocking construction in one place tightens the market everywhere else. The essay should account for where the displaced demand goes.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay arguing that building more housing will solve
+  affordability without any targeted subsidies or other interventions.
+
+  ```json
+  {
+    "title": "Supply Response Alone Cannot Reach All Income Levels on a Policy-Relevant Timeline",
+    "quoted_passage": "The solution is simple: cut regulations, build more, and let the market bring prices down for everyone.",
+    "issue_types": ["PARTIAL_EQUILIBRIUM", "QUANTITATIVE_IMPLAUSIBILITY"],
+    "severity": "Moderate",
+    "explanation": "The essay correctly identifies supply constraints as a major driver of high housing costs. But it treats the housing market as a single market with a single price, when in practice it is segmented by quality, location, and tenure type. New construction enters at the top of the quality distribution. It reaches lower-income households only through 'filtering,' the process by which older units become relatively cheaper as new ones absorb higher-income demand.\n\nFiltering is real but slow. Rosenthal (2014) estimates it at roughly 1.9 percent per year nationwide, meaning a new unit takes decades to reach a rent affordable to a household at half the area median income. For households facing eviction or homelessness, that timeline is irrelevant. No plausible construction boom will produce deeply affordable units in high-cost metros within a policymaker's term.\n\nThe essay's error is not in advocating for more supply (the economics supports that) but in claiming supply alone is sufficient. A complete analysis would distinguish between the middle of the income distribution (where market supply works) and the bottom (where direct subsidies, vouchers, or public housing remain necessary because the market cannot serve them on any reasonable timeline).",
+    "dig_deeper": null
+  }
+  ```
+
+exog_endog_examples: |
+  **Source text context:** An essay arguing that housing prices will inevitably
+  rise in a given metro area.
+
+  ```json
+  {
+    "title": "Rising Housing Prices Are an Outcome, Not a Given",
+    "quoted_passage": "With home prices in Austin rising 8% per year, the average family will be priced out within a decade.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Critical",
+    "explanation": "The essay treats the current price trend as an exogenous fact that will persist, rather than an endogenous outcome that depends on supply and demand conditions that themselves respond to prices. When prices rise, several adjustments kick in.\n\nSupply responds: higher prices make development more profitable, attracting construction. How much construction depends on local supply elasticity. In metros with permissive zoning and available land, the supply response is large, which is why price spikes in such cities have historically been followed by moderation. In metros with restrictive zoning or geographic constraints, supply barely responds and price increases can persist.\n\nDemand responds too: as prices rise, some potential migrants choose other cities, and some current residents leave. The essay extrapolating 8% per year forward is like extrapolating a ball thrown upward and predicting it reaches orbit. The forces that created the trend also create the counter-forces that moderate it.\n\nThe correct question is not 'will prices keep rising at 8%?' but 'what determines the long-run price level?' The answer depends on supply conditions: in a city with elastic supply, the long-run price is anchored by construction costs. In a city with restricted supply, it is set by the willingness of the richest potential residents to pay.",
+    "dig_deeper": "Saiz (2010, QJE) decomposes housing supply constraints into geographic factors (steep terrain, water boundaries) and regulatory factors (zoning, permitting, environmental review). A city can have abundant flat land but still have inelastic supply if regulation is restrictive. The Wharton Residential Land Use Regulatory Index ranks metros by the stringency of their land use regulations. High-WRLURI cities tend to have lower elasticities, higher price levels, and larger price swings in response to demand shocks."
+  }
+  ```
+
+  **Source text context:** An essay arguing that new development inherently
+  displaces existing residents.
+
+  ```json
+  {
+    "title": "Treating Displacement as Automatic Rather Than Conditional",
+    "quoted_passage": "New development displaces existing residents. That is simply what happens when you build market-rate housing in low-income neighborhoods.",
+    "issue_types": ["EXOG_ENDO_CONFUSION", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "The essay states displacement as an inherent property of new construction rather than an outcome that depends on specific conditions. Displacement is the net result of two opposing forces: a demand-attraction effect (new construction may raise neighborhood desirability and therefore prices) and a supply-absorption effect (new units accommodate demand that would otherwise bid up rents in existing buildings).\n\nWhich force dominates is an empirical question, not a foregone conclusion, and the answer likely varies by context: how tight the local market is, how large the project is relative to the neighborhood, and whether the new units serve a segment of demand that was previously competing for existing stock.\n\nTreating displacement as automatic is the exogenous/endogenous error: it assumes the outcome (displacement) as a premise rather than deriving it from a mechanism. The mechanism matters, because it determines whether building more or building less is the better anti-displacement strategy. An essay that asserts the answer without examining the mechanism is skipping the economics.",
+    "dig_deeper": null
+  }
+  ```
+
+quantitative_examples: |
+  **Source text context:** An essay arguing that rent control is an effective
+  affordability tool with no significant downsides.
+
+  ```json
+  {
+    "title": "Rent Control's Short-Run Benefit Must Be Weighed Against Long-Run Supply Response",
+    "quoted_passage": "Rent stabilization kept 100,000 families in their homes over the past decade. It is the most effective affordability tool the city has.",
+    "issue_types": ["QUANTITATIVE_COMPOSSIBILITY", "PARTIAL_EQUILIBRIUM"],
+    "severity": "Critical",
+    "explanation": "The essay counts the families who benefited from rent control but does not count the housing units removed from the rental market in response. Diamond, McQuade, and Qian (2019, AER), studying San Francisco's 1994 rent control expansion using a natural experiment, found that while rent control reduced tenant displacement in the short run, landlords responded by reducing rental housing supply by 15 percent over the following decade. They converted rental units to condos, redeveloped buildings, or withdrew units from the market.\n\nThe supply reduction raised market rents for non-controlled units. So rent control helped incumbent tenants (those already in controlled units) while hurting tenants searching for housing (who face a smaller, more expensive rental market). The 100,000 families who stayed are visible and countable. The families who paid higher rents or could not find apartments because of the supply reduction are harder to count but economically real.\n\nThe net welfare effect depends on the magnitudes and the specific policy design. Some forms of rent stabilization may produce smaller supply-side responses than others. But the essay's claim that rent control is a pure win ignores the supply-side tradeoff entirely, which is the central question in the economics of rent regulation.",
+    "dig_deeper": "Diamond et al. use a 1994 San Francisco ballot measure as a natural experiment. Buildings with four or fewer units built before 1980 were not covered by rent control before 1994 but were covered after. Comparing tenants in newly covered buildings to those in buildings just above the size cutoff provides causal estimates. The external validity of these specific magnitudes to other cities and policy designs is debated, but the existence of a supply-side response to rent control is one of the most widely agreed-upon results in housing economics."
+  }
+  ```
+
+  **Source text context:** An essay arguing that regulation makes affordable
+  construction impossible.
+
+  ```json
+  {
+    "title": "Regulatory Costs Are Real but Often Conflated with Scarcity Premiums",
+    "quoted_passage": "Regulation adds $100,000 to the cost of every new home, making affordable construction impossible.",
+    "issue_types": ["QUANTITATIVE_IMPLAUSIBILITY", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "The $100,000 figure may conflate several different things: direct regulatory fees (permitting, impact fees, environmental review), indirect costs (delays that increase financing costs), and the land price premium caused by supply restrictions. These are conceptually different.\n\nDirect fees and compliance costs are real costs that must be paid regardless of market conditions. But the land price premium is not a 'cost of regulation' in the same sense. When zoning restricts how much can be built, land prices rise because the zoning creates scarcity value. If you upzoned the land, the construction cost would not fall by the full 'regulatory cost' because much of that premium would vanish as more land became developable.\n\nGlaeser and Gyourko (2018, JEP) estimate the gap between house prices and the marginal cost of construction at over $100,000 in supply-constrained metros like San Francisco, but near zero in elastic metros like Houston. The magnitude of this 'zoning tax' is debated (Rodríguez-Pose and Storper 2019 argue regulation's role is overstated), but the basic point holds: the essay should distinguish between regulations that raise the cost of building (which could be streamlined) and regulations that restrict how much gets built (which is where most of the affordability debate lives).",
+    "dig_deeper": null
+  }
+  ```
+
+consistency_examples: |
+  **Source text context:** An essay arguing against new housing development on
+  both affordability and displacement grounds.
+
+  ```json
+  {
+    "title": "Can't Simultaneously Argue Building Has No Effect and Building Causes Displacement",
+    "quoted_passage": "Market-rate construction does nothing to bring down rents. Meanwhile, every new luxury building accelerates gentrification and displaces long-term residents.",
+    "issue_types": ["INTERNAL_CONTRADICTION"],
+    "severity": "Critical",
+    "explanation": "The essay makes two claims that work against each other. Claim one: new construction has no effect on rents ('does nothing to bring down rents'). Claim two: new construction changes the neighborhood so much that it displaces existing residents ('accelerates gentrification').\n\nIf new construction truly had no market effect, it could not cause gentrification. Gentrification requires that the new building changes something: attracting new residents, shifting the neighborhood's demographic mix, raising the desirability and therefore the price of surrounding housing. But that is a market effect. The essay wants construction to be simultaneously inert (no price effect) and transformative (displacement). It cannot be both.\n\nThis is a purely logical point that does not depend on any empirical estimate. Either new housing affects the local market or it does not. If it does, the relevant question is the direction and magnitude: does the supply effect (more units, lower prices) outweigh the demand-attraction effect (nicer neighborhood, higher prices)? That is a legitimate empirical debate. But the essay avoids it by asserting both sides of a contradiction at once.",
+    "dig_deeper": null
+  }
+  ```
+
+  **Source text context:** An essay opposing both infill development and
+  suburban expansion.
+
+  ```json
+  {
+    "title": "Opposing Both Density and Sprawl Leaves No Room for Growth",
+    "quoted_passage": "We must protect our neighborhoods from overdevelopment while also preventing sprawl that destroys farmland and increases commute times.",
+    "issue_types": ["INTERNAL_CONTRADICTION", "MISSING_MECHANISM"],
+    "severity": "Moderate",
+    "explanation": "Housing for a growing population has to go somewhere. It can go up (density in existing neighborhoods), out (greenfield development at the urban fringe), or nowhere (in which case prices rise until enough people leave or double up to match the constrained supply). There is no fourth option.\n\nThe essay opposes both density (protecting neighborhoods from overdevelopment) and sprawl (protecting farmland and limiting commutes). If population is growing and both options are blocked, the implicit policy is option three: let prices rise. This may be the essay's actual preference, but it is not stated, and it has consequences the essay does not address. Higher prices disproportionately burden lower-income residents, the very group the essay elsewhere claims to protect.\n\nThis is an accounting constraint, not an ideological claim. A coherent housing position must specify which of the three options it favors, or propose a mechanism that relaxes the constraint (e.g., reducing demand through slower population growth, or reducing space-per-household through different housing types). The essay cannot coherently oppose all three outcomes.",
+    "dig_deeper": null
+  }
+  ```
+
+steelman_examples: |
+  **Source text context:** An essay arguing against new market-rate development
+  in a low-income neighborhood.
+
+  ```json
+  {
+    "title": "Neighborhood Transition Imposes Real Costs Not Captured by Aggregate Statistics",
+    "category": "legitimate_concern",
+    "explanation": "Even if new construction lowers average rents across a metro area, the transition process imposes real costs on specific people. Long-term residents in a changing neighborhood may face disruption to social networks, loss of culturally specific businesses, and the stress of living through sustained construction. These costs are not captured in aggregate rent statistics.\n\nCommunity stability has economic value that standard housing models undercount. Social capital (knowing your neighbors, informal childcare networks, trust in local institutions) takes years to build and can be destroyed faster than it is replaced. The essay is correct that aggregate metrics can mask distributional pain. The weakness is not in identifying the problem but in the proposed solution: blocking construction addresses the symptom (visible change) while potentially worsening the underlying cause (housing scarcity that puts upward pressure on rents everywhere).",
+    "conditionality": "This concern is strongest in tight housing markets where new construction is scarce enough that each project represents a large local shock. In metros with abundant construction, any single project is a small increment and neighborhood change happens more gradually."
+  }
+  ```
+
+  **Source text context:** An essay arguing that market-rate construction does
+  not help lower-income households.
+
+  ```json
+  {
+    "title": "Market-Rate Supply Alone Cannot Reach the Lowest-Income Households on a Policy-Relevant Timeline",
+    "category": "conditionally_sound",
+    "explanation": "The filtering process through which new construction eventually becomes affordable housing is real but slow. Rosenthal (2014) estimates housing filters at roughly 1.9 percent per year nationwide, meaning a new unit takes 30 to 50 years to reach a rent affordable to a household at half the area median income. For households in acute need, market filtering operates on a timescale measured in decades while their crisis is measured in months.\n\nDirect subsidies (vouchers, public housing, income-restricted units) remain necessary for the lowest-income households regardless of how much market-rate supply is built. The essay's argument that market-rate construction 'does not help the poor' is too broad as a general statement about housing markets, but it contains a valid core: no plausible amount of market-rate construction will produce deeply affordable units in high-cost metros within a single policymaker's term. Supply is necessary but not sufficient.",
+    "conditionality": "The filtering timeline varies dramatically by metro. In elastic-supply metros (Houston, Atlanta), filtering is faster because abundant construction keeps the price premium for new units lower. In inelastic-supply metros (San Francisco, New York), filtering is slower because scarcity keeps even older units expensive."
+  }
+  ```
