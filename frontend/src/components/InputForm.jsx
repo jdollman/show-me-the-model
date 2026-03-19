@@ -17,7 +17,7 @@ export default function InputForm({ onSubmit }) {
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState(null);
-  const { anthropicKey, setAnthropicKey, openaiKey, setOpenaiKey, provider, setProvider, activeKey } =
+  const { anthropicKey, setAnthropicKey, openaiKey, setOpenaiKey, provider, setProvider, activeKey, rememberKeys, setRememberKeys } =
     useApiSettings();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -152,9 +152,23 @@ export default function InputForm({ onSubmit }) {
           />
         </div>
       </div>
-      <p className="text-xs -mt-4" style={{ color: "var(--smtm-text-muted)" }}>
-        Stored in your browser only. Sent only to the selected provider.
-      </p>
+      <div className="flex items-center justify-between -mt-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rememberKeys}
+            onChange={(e) => setRememberKeys(e.target.checked)}
+            className="rounded"
+          />
+          <span className="text-xs font-body" style={{ color: "var(--smtm-text-muted)" }}>
+            Remember my keys
+          </span>
+        </label>
+        <span className="text-xs font-body" style={{ color: "var(--smtm-text-muted)" }}>
+          {rememberKeys ? "Saved across sessions." : "Cleared when you close this tab."}
+          {" "}Sent only to the selected provider.
+        </span>
+      </div>
 
       {/* Tabs */}
       <div>

@@ -201,7 +201,7 @@ export default function ResultsView({ result, analysisId, onReset }) {
                 </p>
               )}
               <p className="mt-1 mb-0 text-xs font-body" style={{ color: "var(--smtm-text-muted)" }}>
-                {metadata?.source_url ? (
+                {metadata?.source_url && /^https?:\/\//.test(metadata.source_url) ? (
                   <a
                     href={metadata.source_url}
                     target="_blank"
