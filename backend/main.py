@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import secrets
+import signal
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -286,7 +287,7 @@ async def shutdown():
     if os.getenv("ALLOWED_ORIGINS"):
         raise HTTPException(status_code=403, detail="Shutdown disabled in production")
     logger.info("Shutdown requested via API")
-    os.kill(os.getpid(), 15)  # SIGTERM
+    os.killpg(os.getpgrp(), signal.SIGTERM)
     return {"status": "shutting down"}
 
 
