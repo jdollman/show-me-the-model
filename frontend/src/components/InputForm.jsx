@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useApiSettings from "../hooks/useApiSettings";
+import { fetchModels } from "../api";
 
 const TABS = [
   { key: "text", label: "Paste Text" },
@@ -7,22 +8,56 @@ const TABS = [
   { key: "file", label: "Upload PDF" },
 ];
 
-const PROVIDERS = [
-  { key: "anthropic", label: "Claude (Sonnet + Opus)" },
-  { key: "openai", label: "OpenAI (GPT-5 mini + GPT-5.4)" },
-  { key: "xai", label: "Grok (4.1 Fast + 4.20)" },
-];
-
 const TEXT_TEMPLATE = "# Notes for AI agents:\n# Source URL: \n# Author: \n# Title: \n\n";
+
+const MAX_CONFIGURATIONS = 5;
+
+function ModelSelect({ value, onChange, models, preferTier, style, inputFocus }) {
+  const providers = [...new Set(models.map((m) => m.provider))];
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`w-full rounded-md border px-3 py-2 text-sm ${inputFocus}`}
+      style={style}
+    >
+      {providers.map((prov) => {
+        const group = models
+          .filter((m) => m.provider === prov)
+          .sort((a, b) => (a.tier === preferTier ? -1 : 1) - (b.tier === preferTier ? -1 : 1));
+        return (
+          <optgroup key={prov} label={prov.charAt(0).toUpperCase() + prov.slice(1)}>
+            {group.map((m) => (
+              <option key={m.id} value={m.id} disabled={!m.available}>
+                {m.short_name}{!m.available ? " (no key)" : ""}
+              </option>
+            ))}
+          </optgroup>
+        );
+      })}
+    </select>
+  );
+}
 
 export default function InputForm({ onSubmit }) {
   const [tab, setTab] = useState("text");
   const [text, setText] = useState(TEXT_TEMPLATE);
   const [url, setUrl] = useState("");
   const [file, setFile] = useState(null);
-  const { provider, setProvider } = useApiSettings();
+  const { configurations, addConfiguration, removeConfiguration, updateConfiguration } = useApiSettings();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [models, setModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchModels()
+      .then((data) => setModels(data))
+      .catch(() => {
+        // If /api/models is unavailable, leave models empty — selects will be hidden
+      })
+      .finally(() => setModelsLoading(false));
+  }, []);
 
   const hasInput =
     (tab === "text" && text.trim().length > 0 && text.trim() !== TEXT_TEMPLATE.trim()) ||
@@ -40,7 +75,7 @@ export default function InputForm({ onSubmit }) {
         url: tab === "url" ? url : undefined,
         file: tab === "file" ? file : undefined,
         email: email || undefined,
-        provider,
+        configurations,
       });
     } finally {
       setSubmitting(false);
@@ -69,23 +104,75 @@ export default function InputForm({ onSubmit }) {
   return (
     <div className="space-y-8">
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* Model configuration section */}
       <div>
-        <label className="block text-sm font-medium mb-1 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
-          Workflow
-        </label>
-        <select
-          value={provider}
-          onChange={(e) => setProvider(e.target.value)}
-          className={`w-full rounded-md border px-3 py-2 text-sm ${inputFocus}`}
-          style={{
-            ...inputBase,
-            borderColor: "var(--smtm-border-input)",
-          }}
-        >
-          {PROVIDERS.map((p) => (
-            <option key={p.key} value={p.key}>{p.label}</option>
-          ))}
-        </select>
+        <div className="grid grid-cols-2 gap-3 mb-1">
+          <label className="block text-sm font-medium font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+            Workhorse Model (Stages 1–2.5)
+          </label>
+          <label className="block text-sm font-medium font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+            Synthesis Model (Stage 3)
+          </label>
+        </div>
+
+        {modelsLoading ? (
+          <p className="text-sm" style={{ color: "var(--smtm-text-muted)" }}>Loading models…</p>
+        ) : (
+          <div className="space-y-2">
+            {configurations.map((config, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="grid grid-cols-2 gap-3 flex-1">
+                  <ModelSelect
+                    value={config.workhorse_model}
+                    onChange={(val) => updateConfiguration(index, "workhorse_model", val)}
+                    models={models}
+                    preferTier="workhorse"
+                    style={inputBase}
+                    inputFocus={inputFocus}
+                  />
+                  <ModelSelect
+                    value={config.synthesis_model}
+                    onChange={(val) => updateConfiguration(index, "synthesis_model", val)}
+                    models={models}
+                    preferTier="synthesis"
+                    style={inputBase}
+                    inputFocus={inputFocus}
+                  />
+                </div>
+                {index > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => removeConfiguration(index)}
+                    className="flex-shrink-0 rounded-md px-2 py-1 text-sm font-medium font-body transition-colors cursor-pointer"
+                    style={{
+                      background: "var(--smtm-btn-secondary-bg)",
+                      borderColor: "var(--smtm-btn-secondary-border)",
+                      color: "var(--smtm-text-muted)",
+                      border: "1px solid",
+                    }}
+                    title="Remove this configuration"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {configurations.length < MAX_CONFIGURATIONS && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={addConfiguration}
+                  className="text-sm font-medium font-body transition-colors cursor-pointer"
+                  style={{ color: "var(--smtm-tab-active-text)" }}
+                >
+                  + Add another configuration
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
