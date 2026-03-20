@@ -58,12 +58,8 @@ function PendingDot() {
   return <div className="h-5 w-5 rounded-full border-2" style={{ borderColor: "var(--smtm-progress-pending-border)" }} />;
 }
 
-import { useState } from "react";
-
-export default function ProgressTracker({ stages, stageOrder, jobId }) {
+function PipelineProgress({ stages, stageOrder }) {
   const completedSet = new Set(Object.keys(stages));
-
-  // Find the current (first incomplete) stage
   let currentStage = null;
   for (const s of stageOrder) {
     if (!completedSet.has(s)) {
@@ -72,84 +68,58 @@ export default function ProgressTracker({ stages, stageOrder, jobId }) {
     }
   }
 
-  const [copied, setCopied] = useState(false);
-  const copyJobId = () => {
-    if (jobId) {
-      navigator.clipboard.writeText(jobId).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
+  return (
+    <div className="space-y-3">
+      {stageOrder.map((key) => {
+        const meta = STAGE_META[key];
+        const done = completedSet.has(key);
+        const active = key === currentStage;
+        return (
+          <div key={key} className="flex items-start gap-3">
+            <div className="mt-0.5">
+              {done ? <Checkmark /> : active ? <Spinner /> : <PendingDot />}
+            </div>
+            <div>
+              <p className="text-sm font-medium font-body"
+                 style={{ color: done ? "var(--smtm-progress-done)" : active ? "var(--smtm-progress-active)" : "var(--smtm-text-muted)" }}>
+                {meta.label}
+              </p>
+              {active && (
+                <p className="text-xs mt-0.5" style={{ color: "var(--smtm-text-muted)" }}>
+                  {meta.description}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ProgressTracker({ jobStates, stageOrder }) {
+  if (!jobStates || jobStates.length === 0) return null;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       <p className="text-sm mb-4" style={{ color: "var(--smtm-text-muted)" }}>
-        Analysis in progress. This typically takes 5–10 minutes.
+        Analysis in progress. This typically takes 5-10 minutes.
       </p>
-      {jobId && (
-        <div
-          className="rounded-lg px-4 py-3 mb-4 border"
-          style={{
-            background: "var(--smtm-bg-surface)",
-            borderColor: "var(--smtm-border-default)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-medium font-body" style={{ color: "var(--smtm-text-muted)" }}>
-              Job ID
-            </span>
-            <button
-              onClick={copyJobId}
-              className="px-2 py-0.5 rounded font-mono text-xs transition-colors cursor-pointer border"
-              style={{
-                background: "var(--smtm-bg-surface-raised)",
-                color: "var(--smtm-text-primary)",
-                borderColor: "var(--smtm-border-default)",
-              }}
-            >
-              {copied ? "Copied!" : jobId}
-            </button>
-          </div>
-          <p className="text-xs leading-relaxed m-0" style={{ color: "var(--smtm-text-muted)" }}>
-            Save this ID for your records. If you get disconnected, the analysis will still complete in the background. Once it finishes, you&apos;ll receive a shareable analysis ID on the results page.
-          </p>
+      {jobStates.map((job) => (
+        <div key={job.jobId}>
+          {jobStates.length > 1 && (
+            <p className="text-sm font-medium mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+              {job.label}
+            </p>
+          )}
+          <PipelineProgress stages={job.stages} stageOrder={stageOrder} />
+          {job.error && (
+            <p className="text-sm mt-1" style={{ color: "var(--smtm-error)" }}>
+              Error: {job.error.message}
+            </p>
+          )}
         </div>
-      )}
-      <div className="space-y-3">
-        {stageOrder.map((key) => {
-          const meta = STAGE_META[key];
-          const done = completedSet.has(key);
-          const active = key === currentStage;
-
-          return (
-            <div key={key} className="flex items-start gap-3">
-              <div className="mt-0.5">
-                {done ? <Checkmark /> : active ? <Spinner /> : <PendingDot />}
-              </div>
-              <div>
-                <p
-                  className="text-sm font-medium font-body"
-                  style={{
-                    color: done
-                      ? "var(--smtm-progress-done)"
-                      : active
-                      ? "var(--smtm-progress-active)"
-                      : "var(--smtm-text-muted)",
-                  }}
-                >
-                  {meta.label}
-                </p>
-                {active && (
-                  <p className="text-xs mt-0.5" style={{ color: "var(--smtm-text-muted)" }}>
-                    {meta.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      ))}
     </div>
   );
 }
