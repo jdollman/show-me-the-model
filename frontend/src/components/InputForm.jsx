@@ -152,6 +152,15 @@ export default function InputForm({ onSubmit }) {
           />
         </div>
       </div>
+      <p className="text-xs -mt-2" style={{ color: "var(--smtm-text-muted)" }}>
+        Don't have a key?{" "}
+        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>Get one from Anthropic</a>
+        {" "}or{" "}
+        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>OpenAI</a>.
+        {" "}Both require prepaid usage credits
+        {" "}(<a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>Anthropic billing</a>,
+        {" "}<a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>OpenAI billing</a>).
+      </p>
       <div className="flex items-center justify-between -mt-4">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
