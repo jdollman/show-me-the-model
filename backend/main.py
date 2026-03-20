@@ -26,6 +26,15 @@ from backend.jobs import STAGE_NAMES, JobStatus, JobStore
 from backend.pipeline import run_pipeline
 from backend.text_extract import extract_from_pdf, extract_from_url, validate_text
 
+# Map provider names to their environment variable keys
+_PROVIDER_ENV_KEYS = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "xai": "XAI_API_KEY",
+}
+
+VALID_PROVIDERS = set(_PROVIDER_ENV_KEYS.keys())
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -163,7 +172,9 @@ async def _run_job(job_id: str, api_key: str, base_url: str, provider: str) -> N
         job.queue.put_nowait(("stage_complete", event))
 
     try:
-        if provider == "openai":
+        if provider == "xai":
+            client = AsyncOpenAI(api_key=api_key, base_url="https://api.x.ai/v1")
+        elif provider == "openai":
             client = AsyncOpenAI(api_key=api_key)
         else:
             client = AsyncAnthropic(api_key=api_key)
@@ -243,10 +254,12 @@ async def analyze(
     x_provider: str | None = Header(None),
 ) -> dict[str, str]:
     """Submit text for analysis. Accepts JSON body or multipart form (for PDF upload)."""
-    api_key = x_api_key
     provider = (x_provider or "anthropic").strip().lower()
-    if provider not in {"anthropic", "openai"}:
-        raise HTTPException(status_code=400, detail="X-Provider must be one of: anthropic, openai")
+    if provider not in VALID_PROVIDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"X-Provider must be one of: {', '.join(sorted(VALID_PROVIDERS))}",
+        )
 
     body: dict = {}
     if text is None and url is None and file is None:
@@ -256,8 +269,16 @@ async def analyze(
         except Exception:
             pass
 
+    # Use server-side env var for the selected provider (fall back to header for
+    # backwards compatibility with the public hosted version).
+    env_key = _PROVIDER_ENV_KEYS[provider]
+    api_key = os.getenv(env_key) or x_api_key
     if not api_key:
-        raise HTTPException(status_code=401, detail="X-Api-Key header is required")
+        raise HTTPException(
+            status_code=401,
+            detail=f"No API key configured for provider '{provider}' "
+            f"(set {env_key} environment variable)",
+        )
 
     if email and not EMAIL_RE.match(email):
         raise HTTPException(status_code=400, detail="Invalid email address format")

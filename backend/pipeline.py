@@ -29,6 +29,9 @@ _PRICING = {
     # OpenAI (mapped names)
     "gpt-5-mini": {"input": 1.50 / 1e6, "output": 6.00 / 1e6},
     "gpt-5.4": {"input": 10.00 / 1e6, "output": 30.00 / 1e6},
+    # xAI (mapped names)
+    "grok-4-1-fast-non-reasoning": {"input": 0.20 / 1e6, "output": 0.50 / 1e6},
+    "grok-4.20-0309-non-reasoning": {"input": 2.00 / 1e6, "output": 6.00 / 1e6},
 }
 
 # Default number of JSON-parse retry attempts.
@@ -142,6 +145,15 @@ def _map_model_for_openai(model: str) -> str:
     return model_map.get(model, model)
 
 
+def _map_model_for_xai(model: str) -> str:
+    """Map Anthropic prompt model names to xAI equivalents."""
+    model_map = {
+        "claude-sonnet-4-6": "grok-4-1-fast-non-reasoning",
+        "claude-opus-4-6": "grok-4.20-0309-non-reasoning",
+    }
+    return model_map.get(model, model)
+
+
 # Models that only accept temperature=1 (the default)
 _OPENAI_NO_TEMPERATURE = {"gpt-5-mini"}
 
@@ -226,7 +238,20 @@ async def _call_model(
     max_tokens: int,
     retries: int = _DEFAULT_RETRIES,
 ) -> tuple[str, dict]:
-    """Route model calls to Claude or OpenAI. Returns (text, usage_record)."""
+    """Route model calls to Claude, OpenAI, or xAI. Returns (text, usage_record)."""
+    if provider == "xai":
+        # xAI uses the OpenAI-compatible API with its own model names
+        xai_model = _map_model_for_xai(model)
+        return await _call_openai(
+            client,
+            xai_model,  # pass already-mapped name so _call_openai skips its own mapping
+            system_prompt,
+            user_prompt,
+            temperature,
+            max_tokens,
+            retries,
+        )
+
     if provider == "openai":
         return await _call_openai(
             client,

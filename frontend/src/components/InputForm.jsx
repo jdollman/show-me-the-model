@@ -10,6 +10,7 @@ const TABS = [
 const PROVIDERS = [
   { key: "anthropic", label: "Claude (Sonnet + Opus)" },
   { key: "openai", label: "OpenAI (GPT-5 mini + GPT-5.4)" },
+  { key: "xai", label: "Grok (4.1 Fast + 4.20)" },
 ];
 
 const TEXT_TEMPLATE = "# Notes for AI agents:\n# Source URL: \n# Author: \n# Title: \n\n";
@@ -19,8 +20,7 @@ export default function InputForm({ onSubmit }) {
   const [text, setText] = useState(TEXT_TEMPLATE);
   const [url, setUrl] = useState("");
   const [file, setFile] = useState(null);
-  const { anthropicKey, setAnthropicKey, openaiKey, setOpenaiKey, provider, setProvider, activeKey, rememberKeys, setRememberKeys } =
-    useApiSettings();
+  const { provider, setProvider } = useApiSettings();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,7 +29,7 @@ export default function InputForm({ onSubmit }) {
     (tab === "url" && url.trim().length > 0) ||
     (tab === "file" && file !== null);
 
-  const canSubmit = hasInput && activeKey.trim().length > 0 && !submitting;
+  const canSubmit = hasInput && !submitting;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,7 +40,6 @@ export default function InputForm({ onSubmit }) {
         url: tab === "url" ? url : undefined,
         file: tab === "file" ? file : undefined,
         email: email || undefined,
-        apiKey: activeKey,
         provider,
       });
     } finally {
@@ -87,98 +86,6 @@ export default function InputForm({ onSubmit }) {
             <option key={p.key} value={p.key}>{p.label}</option>
           ))}
         </select>
-      </div>
-
-      {/* API Keys — both always visible */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
-            Anthropic API Key
-            {provider === "anthropic" && (
-              <span
-                className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold align-middle"
-                style={{
-                  background: "var(--smtm-active-badge-bg)",
-                  color: "var(--smtm-active-badge-text)",
-                }}
-              >
-                ACTIVE
-              </span>
-            )}
-          </label>
-          <input
-            type="password"
-            value={anthropicKey}
-            onChange={(e) => setAnthropicKey(e.target.value)}
-            placeholder="sk-ant-..."
-            className={`w-full rounded-md border px-3 py-2 text-sm ${inputFocus}`}
-            style={provider === "anthropic" ? {
-              ...inputBase,
-              borderColor: "var(--smtm-input-active-border)",
-            } : {
-              background: "var(--smtm-input-inactive-bg)",
-              color: "var(--smtm-input-inactive-text)",
-              borderColor: "var(--smtm-input-inactive-border)",
-            }}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
-            OpenAI API Key
-            {provider === "openai" && (
-              <span
-                className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded font-semibold align-middle"
-                style={{
-                  background: "var(--smtm-active-badge-bg)",
-                  color: "var(--smtm-active-badge-text)",
-                }}
-              >
-                ACTIVE
-              </span>
-            )}
-          </label>
-          <input
-            type="password"
-            value={openaiKey}
-            onChange={(e) => setOpenaiKey(e.target.value)}
-            placeholder="sk-..."
-            className={`w-full rounded-md border px-3 py-2 text-sm ${inputFocus}`}
-            style={provider === "openai" ? {
-              ...inputBase,
-              borderColor: "var(--smtm-input-active-border)",
-            } : {
-              background: "var(--smtm-input-inactive-bg)",
-              color: "var(--smtm-input-inactive-text)",
-              borderColor: "var(--smtm-input-inactive-border)",
-            }}
-          />
-        </div>
-      </div>
-      <p className="text-xs -mt-2" style={{ color: "var(--smtm-text-muted)" }}>
-        Don&apos;t have a key?{" "}
-        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>Get one from Anthropic</a>
-        {" "}or{" "}
-        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>OpenAI</a>.
-        {" "}Both require prepaid usage credits
-        {" "}(<a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>Anthropic billing</a>,
-        {" "}<a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer" style={{ color: "var(--smtm-accent-teal)" }}>OpenAI billing</a>).
-      </p>
-      <div className="flex items-center justify-between -mt-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={rememberKeys}
-            onChange={(e) => setRememberKeys(e.target.checked)}
-            className="rounded"
-          />
-          <span className="text-xs font-body" style={{ color: "var(--smtm-text-muted)" }}>
-            Remember my keys
-          </span>
-        </label>
-        <span className="text-xs font-body" style={{ color: "var(--smtm-text-muted)" }}>
-          {rememberKeys ? "Saved across sessions." : "Cleared when you close this tab."}
-          {" "}Sent only to the selected provider.
-        </span>
       </div>
 
       {/* Tabs */}

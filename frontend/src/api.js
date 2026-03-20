@@ -5,16 +5,15 @@
 /**
  * Submit a job for analysis.
  * @param {Object} params
- * @param {string} params.apiKey
- * @param {string} params.provider - 'anthropic' | 'openai'
+ * @param {string} params.provider - 'anthropic' | 'openai' | 'xai'
  * @param {string} [params.text]
  * @param {string} [params.url]
  * @param {File} [params.file]
  * @param {string} [params.email]
  * @returns {Promise<{job_id: string}>}
  */
-export async function submitJob({ text, url, file, email, apiKey, provider }) {
-  const headers = { "X-Api-Key": apiKey, "X-Provider": provider || "anthropic" };
+export async function submitJob({ text, url, file, email, provider }) {
+  const headers = { "X-Provider": provider || "anthropic" };
 
   let body;
   if (file) {
