@@ -6,9 +6,9 @@ from unittest.mock import patch
 import pytest
 
 from backend.models import (
-    MODEL_REGISTRY,
     _PROVIDER_DEFAULTS,
     _PROVIDER_ENV_KEYS,
+    MODEL_REGISTRY,
     estimate_cost,
     get_available_models,
     get_client_for_model,
