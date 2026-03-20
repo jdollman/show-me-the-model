@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 TRAJECTORIES_DIR = Path(__file__).resolve().parent.parent / "trajectories"
 
 
+def _validate_id(trajectory_id: str) -> None:
+    """Guard against path traversal in trajectory IDs."""
+    if "/" in trajectory_id or "\\" in trajectory_id or ".." in trajectory_id:
+        raise ValueError(f"Invalid trajectory ID: {trajectory_id}")
+
+
 def _ensure_dir() -> Path:
     TRAJECTORIES_DIR.mkdir(exist_ok=True)
     return TRAJECTORIES_DIR
@@ -63,6 +69,7 @@ def save_trajectory(
         "reused_from": reused_from,
         "group_id": group_id,
     }
+    _validate_id(trajectory_id)
     path = _ensure_dir() / f"{trajectory_id}.json"
     path.write_text(json.dumps(trajectory, indent=2))
     logger.info("Saved trajectory %s to %s", trajectory_id, path)
@@ -71,13 +78,14 @@ def save_trajectory(
 
 def load_trajectory(trajectory_id: str) -> dict:
     """Load a trajectory by ID. Raises FileNotFoundError or ValueError on problems."""
+    _validate_id(trajectory_id)
     path = TRAJECTORIES_DIR / f"{trajectory_id}.json"
     if not path.is_file():
         raise FileNotFoundError(f"Trajectory not found: {trajectory_id}")
     try:
         data = json.loads(path.read_text())
     except json.JSONDecodeError as e:
-        raise ValueError(f"Corrupt trajectory file {trajectory_id}: {e}")
+        raise ValueError(f"Corrupt trajectory file {trajectory_id}: {e}") from e
     # Validate required workhorse stages are present
     stages = data.get("stages", {})
     for required in ("decomposition", "stage2", "dedup"):
