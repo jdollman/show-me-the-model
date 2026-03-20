@@ -1,10 +1,10 @@
 """
 Orchestrates the multi-stage analysis pipeline.
 
-Stage 1:   Decomposition (1 Sonnet call)
-Stage 2:   6 parallel analysis passes (6 Sonnet calls)
-Stage 2.5: Deduplication & merge (1 Sonnet call)
-Stage 3:   Synthesis (1 Opus call)
+Stage 1:   Decomposition (1 workhorse call)
+Stage 2:   6 parallel analysis passes (6 workhorse calls)
+Stage 2.5: Deduplication & merge (1 workhorse call)
+Stage 3:   Synthesis (1 synthesis call)
 """
 
 import asyncio
@@ -12,40 +12,15 @@ import json
 import logging
 from typing import Any
 
-from anthropic import AsyncAnthropic
 from anthropic.types import TextBlock
-from openai import AsyncOpenAI
 
+from backend.models import MODEL_REGISTRY, estimate_cost, get_client_for_model
 from backend.prompt_loader import load_and_render, load_field_examples
 
 logger = logging.getLogger(__name__)
 
-# Per-token pricing (USD) as of 2025-03.
-# Keys must match the model strings actually sent to each API.
-_PRICING = {
-    # Anthropic
-    "claude-sonnet-4-6": {"input": 3.00 / 1e6, "output": 15.00 / 1e6},
-    "claude-opus-4-6": {"input": 15.00 / 1e6, "output": 75.00 / 1e6},
-    # OpenAI (mapped names)
-    "gpt-5-mini": {"input": 1.50 / 1e6, "output": 6.00 / 1e6},
-    "gpt-5.4": {"input": 10.00 / 1e6, "output": 30.00 / 1e6},
-    # xAI (mapped names)
-    "grok-4-1-fast-non-reasoning": {"input": 0.20 / 1e6, "output": 0.50 / 1e6},
-    "grok-4.20-0309-non-reasoning": {"input": 2.00 / 1e6, "output": 6.00 / 1e6},
-}
-
 # Default number of JSON-parse retry attempts.
 _DEFAULT_RETRIES = 2
-
-
-def _estimate_cost(usage_records: list[dict]) -> float:
-    """Sum up estimated cost from a list of {model, input_tokens, output_tokens}."""
-    total = 0.0
-    for rec in usage_records:
-        prices = _PRICING.get(rec["model"], {"input": 0, "output": 0})
-        total += rec["input_tokens"] * prices["input"]
-        total += rec["output_tokens"] * prices["output"]
-    return round(total, 4)
 
 
 # Each tuple is (prompt_yaml_filename, pass_name_key).
@@ -68,7 +43,6 @@ STAGE2_PASSES = [
 
 
 async def _call_claude(
-    client: AsyncAnthropic,
     model: str,
     system_prompt: str,
     user_prompt: str,
@@ -80,6 +54,7 @@ async def _call_claude(
 
     If the response fails JSON parsing, retries with a nudge to produce valid JSON.
     """
+    client, _ = get_client_for_model(model)
     messages = [{"role": "user", "content": user_prompt}]
     total_input = 0
     total_output = 0
@@ -136,30 +111,7 @@ async def _call_claude(
                 return text, usage
 
 
-def _map_model_for_openai(model: str) -> str:
-    """Map Anthropic prompt model names to OpenAI equivalents."""
-    model_map = {
-        "claude-sonnet-4-6": "gpt-5-mini",
-        "claude-opus-4-6": "gpt-5.4",
-    }
-    return model_map.get(model, model)
-
-
-def _map_model_for_xai(model: str) -> str:
-    """Map Anthropic prompt model names to xAI equivalents."""
-    model_map = {
-        "claude-sonnet-4-6": "grok-4-1-fast-non-reasoning",
-        "claude-opus-4-6": "grok-4.20-0309-non-reasoning",
-    }
-    return model_map.get(model, model)
-
-
-# Models that only accept temperature=1 (the default)
-_OPENAI_NO_TEMPERATURE = {"gpt-5-mini"}
-
-
 async def _call_openai(
-    client: AsyncOpenAI,
     model: str,
     system_prompt: str,
     user_prompt: str,
@@ -167,8 +119,11 @@ async def _call_openai(
     max_tokens: int,
     retries: int = _DEFAULT_RETRIES,
 ) -> tuple[str, dict]:
-    """Make a single OpenAI Chat Completions API call and return (text, usage_record)."""
-    model = _map_model_for_openai(model)
+    """Make a single OpenAI Chat Completions API call and return (text, usage_record).
+
+    Handles both OpenAI and xAI (which uses the OpenAI-compatible API).
+    """
+    client, _ = get_client_for_model(model)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -182,7 +137,7 @@ async def _call_openai(
         messages=messages,
         response_format={"type": "json_object"},
     )
-    if model not in _OPENAI_NO_TEMPERATURE:
+    if not MODEL_REGISTRY.get(model, {}).get("no_temperature"):
         base_kwargs["temperature"] = temperature
 
     for attempt in range(retries + 1):
@@ -229,8 +184,6 @@ async def _call_openai(
 
 
 async def _call_model(
-    client: AsyncAnthropic | AsyncOpenAI,
-    provider: str,
     model: str,
     system_prompt: str,
     user_prompt: str,
@@ -238,40 +191,17 @@ async def _call_model(
     max_tokens: int,
     retries: int = _DEFAULT_RETRIES,
 ) -> tuple[str, dict]:
-    """Route model calls to Claude, OpenAI, or xAI. Returns (text, usage_record)."""
-    if provider == "xai":
-        # xAI uses the OpenAI-compatible API with its own model names
-        xai_model = _map_model_for_xai(model)
-        return await _call_openai(
-            client,
-            xai_model,  # pass already-mapped name so _call_openai skips its own mapping
-            system_prompt,
-            user_prompt,
-            temperature,
-            max_tokens,
-            retries,
+    """Route model calls to the right provider. Returns (text, usage_record)."""
+    provider = MODEL_REGISTRY[model]["provider"]
+    if provider == "anthropic":
+        return await _call_claude(
+            model, system_prompt, user_prompt, temperature, max_tokens, retries
         )
-
-    if provider == "openai":
+    else:
+        # OpenAI and xAI both use the OpenAI-compatible API
         return await _call_openai(
-            client,
-            model,
-            system_prompt,
-            user_prompt,
-            temperature,
-            max_tokens,
-            retries,
+            model, system_prompt, user_prompt, temperature, max_tokens, retries
         )
-
-    return await _call_claude(
-        client,
-        model,
-        system_prompt,
-        user_prompt,
-        temperature,
-        max_tokens,
-        retries,
-    )
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -388,16 +318,12 @@ def _repair_truncated_json(text: str) -> str:
     return result
 
 
-async def run_stage1(
-    client: AsyncAnthropic | AsyncOpenAI, source_text: str, provider: str = "anthropic"
-) -> tuple[dict, dict]:
+async def run_stage1(source_text: str, model: str) -> tuple[dict, dict]:
     """Stage 1: Decompose the source text into structural components."""
-    logger.info("Stage 1: Decomposition")
+    logger.info("Stage 1: Decomposition (model=%s)", model)
     prompt = load_and_render("stage1_decomposition.yaml", source_text=source_text)
     raw, usage = await _call_model(
-        client,
-        provider,
-        prompt["model"],
+        model,
         prompt["system_prompt"],
         prompt["user_prompt"],
         prompt["temperature"],
@@ -407,8 +333,7 @@ async def run_stage1(
 
 
 async def _run_single_pass(
-    client: AsyncAnthropic | AsyncOpenAI,
-    provider: str,
+    model: str,
     yaml_file: str,
     pass_name: str,
     source_text: str,
@@ -426,9 +351,7 @@ async def _run_single_pass(
         runtime_vars.update(field_examples)
     prompt = load_and_render(yaml_file, **runtime_vars)
     raw, usage = await _call_model(
-        client,
-        provider,
-        prompt["model"],
+        model,
         prompt["system_prompt"],
         prompt["user_prompt"],
         prompt["temperature"],
@@ -438,10 +361,9 @@ async def _run_single_pass(
 
 
 async def run_stage2(
-    client: AsyncAnthropic | AsyncOpenAI,
     source_text: str,
     decomposition: dict,
-    provider: str = "anthropic",
+    model: str,
     batch_size: int = 2,
     batch_delay: float = 5.0,
 ) -> tuple[dict[str, dict], list[dict]]:
@@ -472,8 +394,7 @@ async def run_stage2(
             await asyncio.sleep(batch_delay)
         tasks = [
             _run_single_pass(
-                client,
-                provider,
+                model,
                 yaml_file,
                 name,
                 source_text,
@@ -491,10 +412,9 @@ async def run_stage2(
 
 
 async def run_stage2_5(
-    client: AsyncAnthropic | AsyncOpenAI,
     decomposition: dict,
     stage2_results: dict[str, dict],
-    provider: str = "anthropic",
+    model: str,
 ) -> tuple[dict, dict]:
     """Stage 2.5: Deduplicate and merge overlapping annotations."""
     logger.info("Stage 2.5: Dedup & merge")
@@ -511,9 +431,7 @@ async def run_stage2_5(
         steelman_output=json.dumps(stage2_results["steelman"], indent=2),
     )
     raw, usage = await _call_model(
-        client,
-        provider,
-        prompt["model"],
+        model,
         prompt["system_prompt"],
         prompt["user_prompt"],
         prompt["temperature"],
@@ -523,13 +441,12 @@ async def run_stage2_5(
 
 
 async def run_stage3(
-    client: AsyncAnthropic | AsyncOpenAI,
     source_text: str,
     decomposition: dict,
     merged_annotations: dict,
-    provider: str = "anthropic",
+    model: str,
 ) -> tuple[dict, dict]:
-    """Stage 3: Synthesis report (Opus)."""
+    """Stage 3: Synthesis report."""
     logger.info("Stage 3: Synthesis")
     prompt = load_and_render(
         "stage3_synthesis.yaml",
@@ -538,9 +455,7 @@ async def run_stage3(
         merged_annotations=json.dumps(merged_annotations, indent=2),
     )
     raw, usage = await _call_model(
-        client,
-        provider,
-        prompt["model"],
+        model,
         prompt["system_prompt"],
         prompt["user_prompt"],
         prompt["temperature"],
@@ -550,70 +465,79 @@ async def run_stage3(
 
 
 async def run_pipeline(
-    client: AsyncAnthropic | AsyncOpenAI,
     source_text: str,
-    provider: str = "anthropic",
+    workhorse_model: str,
+    synthesis_model: str,
     on_stage_complete=None,
+    reuse_stages: dict | None = None,
 ) -> dict:
     """
     Run the full analysis pipeline on a source text.
 
     Args:
-        client: AsyncAnthropic client instance
         source_text: The raw text to analyze
-        on_stage_complete: Optional callback(stage_name, result) for progress tracking
+        workhorse_model: Model ID for stages 1, 2, and 2.5
+        synthesis_model: Model ID for stage 3
+        on_stage_complete: Optional callback(stage_name, result, *, usage=None, reused=False)
+        reuse_stages: Optional dict with pre-computed stages to skip re-running
 
     Returns:
-        dict with keys: decomposition, stage2_results, merged_annotations, synthesis
+        dict with keys: workhorse_model, synthesis_model, estimated_cost,
+                        decomposition, stage2_results, merged_annotations, synthesis
     """
     all_usage = []
 
-    # Stage 1
-    decomposition, usage1 = await run_stage1(client, source_text, provider=provider)
-    all_usage.append(usage1)
-    if on_stage_complete:
-        on_stage_complete("decomposition", decomposition)
+    if reuse_stages:
+        decomposition = reuse_stages["decomposition"]
+        stage2_results = reuse_stages["stage2"]
+        merged = reuse_stages["dedup"]
+        if on_stage_complete:
+            on_stage_complete("decomposition", decomposition, reused=True)
+            on_stage_complete("stage2", stage2_results, reused=True)
+            on_stage_complete("dedup", merged, reused=True)
+    else:
+        # Stage 1
+        decomposition, usage1 = await run_stage1(source_text, model=workhorse_model)
+        all_usage.append(usage1)
+        if on_stage_complete:
+            on_stage_complete("decomposition", decomposition, usage=usage1)
 
-    # Stage 2 (parallel)
-    stage2_results, usage2_list = await run_stage2(
-        client,
-        source_text,
-        decomposition,
-        provider=provider,
-    )
-    all_usage.extend(usage2_list)
-    if on_stage_complete:
-        on_stage_complete("stage2", stage2_results)
+        # Stage 2 (parallel)
+        stage2_results, usage2_list = await run_stage2(
+            source_text,
+            decomposition,
+            model=workhorse_model,
+        )
+        all_usage.extend(usage2_list)
+        if on_stage_complete:
+            summed_usage = {
+                "model": workhorse_model,
+                "input_tokens": sum(u["input_tokens"] for u in usage2_list),
+                "output_tokens": sum(u["output_tokens"] for u in usage2_list),
+            }
+            on_stage_complete("stage2", stage2_results, usage=summed_usage)
 
-    # Stage 2.5
-    merged, usage25 = await run_stage2_5(
-        client,
-        decomposition,
-        stage2_results,
-        provider=provider,
-    )
-    all_usage.append(usage25)
-    if on_stage_complete:
-        on_stage_complete("dedup", merged)
+        # Stage 2.5
+        merged, usage25 = await run_stage2_5(decomposition, stage2_results, model=workhorse_model)
+        all_usage.append(usage25)
+        if on_stage_complete:
+            on_stage_complete("dedup", merged, usage=usage25)
 
-    # Stage 3
+    # Stage 3 — always runs
     synthesis, usage3 = await run_stage3(
-        client,
-        source_text,
-        decomposition,
-        merged,
-        provider=provider,
+        source_text, decomposition, merged, model=synthesis_model
     )
     all_usage.append(usage3)
     if on_stage_complete:
-        on_stage_complete("synthesis", synthesis)
+        on_stage_complete("synthesis", synthesis, usage=usage3)
 
-    estimated_cost = _estimate_cost(all_usage)
-    logger.info("Pipeline complete. Estimated API cost: $%.4f", estimated_cost)
+    estimated = estimate_cost(all_usage)
+    logger.info("Pipeline complete. Estimated API cost: $%.4f", estimated)
 
     return {
-        "workflow": provider,
-        "estimated_cost": estimated_cost,
+        "workhorse_model": workhorse_model,
+        "synthesis_model": synthesis_model,
+        "estimated_cost": estimated,
         "decomposition": decomposition,
         "stage2_results": stage2_results,
         "merged_annotations": merged,
