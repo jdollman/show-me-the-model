@@ -9,14 +9,14 @@ import ThemeSwitcher from "./components/ThemeSwitcher";
 const STAGE_ORDER = ["decomposition", "stage2", "dedup", "synthesis"];
 
 export default function App() {
-  const { phase, jobId, analysisId, stages, result, error, handleSubmit, reset,
-          setPhase, setResult, setAnalysisId, setError } = useJobStream();
+  const { phase, groupId, jobStates, result, analysisId, error, handleSubmit, reset,
+          setPhase, setResult, setAnalysisId, setError, setGroupId, setJobStates } = useJobStream();
 
   useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset });
 
-  // ResultsView renders its own full-page layout with header
   if (phase === "done") {
-    return <ResultsView result={result} analysisId={analysisId} onReset={reset} />;
+    return <ResultsView result={result} analysisId={analysisId} groupId={groupId}
+                        jobStates={jobStates} onReset={reset} />;
   }
 
   return (
@@ -44,11 +44,11 @@ export default function App() {
         {phase === "idle" && <InputForm onSubmit={handleSubmit} />}
 
         {phase === "running" && (
-          <ProgressTracker stages={stages} stageOrder={STAGE_ORDER} />
+          <ProgressTracker jobStates={jobStates} stageOrder={STAGE_ORDER} />
         )}
 
         {phase === "error" && (
-          <ErrorMessage error={error} stages={stages} stageOrder={STAGE_ORDER} onRetry={reset} />
+          <ErrorMessage error={error} stages={{}} stageOrder={STAGE_ORDER} onRetry={reset} />
         )}
       </div>
     </div>

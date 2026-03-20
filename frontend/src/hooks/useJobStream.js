@@ -2,14 +2,15 @@ import { useState, useCallback } from "react";
 import { submitJob, connectSSE } from "../api";
 
 /**
- * Manages the SSE job connection and overall job lifecycle state machine.
+ * Manages SSE job connections and overall job lifecycle state machine.
+ * Supports multiple parallel jobs (one per config), each with its own SSE connection.
  *
  * @returns {{
  *   phase: 'idle' | 'running' | 'done' | 'error',
- *   jobId: string | null,
- *   analysisId: string | null,
- *   stages: Object,
+ *   groupId: string | null,
+ *   jobStates: Array<{jobId, label, stages, result, analysisId, trajectoryId, error, done}>,
  *   result: Object | null,
+ *   analysisId: string | null,
  *   error: Object | null,
  *   handleSubmit: (formData: Object) => Promise<void>,
  *   reset: (opts?: { pushHistory?: boolean }) => void,
@@ -17,22 +18,21 @@ import { submitJob, connectSSE } from "../api";
  *   setResult: (result: Object) => void,
  *   setAnalysisId: (id: string) => void,
  *   setError: (error: Object) => void,
+ *   setGroupId: (id: string) => void,
+ *   setJobStates: (states: Array) => void,
  * }}
  */
 export default function useJobStream() {
-  const [phase, setPhase] = useState("idle"); // idle | running | done | error
-  const [jobId, setJobId] = useState(null);
-  const [analysisId, setAnalysisId] = useState(null);
-  const [stages, setStages] = useState({});
-  const [result, setResult] = useState(null);
+  const [phase, setPhase] = useState("idle");
+  const [groupId, setGroupId] = useState(null);
+  const [jobStates, setJobStates] = useState([]);
+  // jobStates: [{jobId, label, stages: {}, result: null, error: null, done: false, analysisId: null, trajectoryId: null}]
   const [error, setError] = useState(null);
 
   const reset = useCallback(({ pushHistory = true } = {}) => {
     setPhase("idle");
-    setJobId(null);
-    setAnalysisId(null);
-    setStages({});
-    setResult(null);
+    setGroupId(null);
+    setJobStates([]);
     setError(null);
     if (pushHistory) {
       window.history.pushState(null, "", window.location.pathname + window.location.search);
@@ -41,30 +41,70 @@ export default function useJobStream() {
 
   const handleSubmit = useCallback(async (formData) => {
     setPhase("running");
-    setStages({});
-    setResult(null);
+    setJobStates([]);
     setError(null);
 
     try {
-      const { job_id } = await submitJob(formData);
-      setJobId(job_id);
+      const { group_id, jobs } = await submitJob(formData);
+      setGroupId(group_id);
 
-      connectSSE(job_id, {
-        onStageComplete: (data) => {
-          setStages((prev) => ({ ...prev, [data.stage]: data }));
-        },
-        onDone: (data) => {
-          setResult(data.result);
-          if (data.analysis_id) {
-            setAnalysisId(data.analysis_id);
-            window.history.pushState(null, "", `#/results/${data.analysis_id}`);
-          }
-          setPhase("done");
-        },
-        onError: (data) => {
-          setError(data);
-          setPhase("error");
-        },
+      const initialStates = jobs.map((j) => ({
+        jobId: j.job_id,
+        label: j.label,
+        stages: {},
+        result: null,
+        analysisId: null,
+        trajectoryId: null,
+        error: null,
+        done: false,
+      }));
+      setJobStates(initialStates);
+
+      // Open SSE for each job
+      jobs.forEach((j, idx) => {
+        connectSSE(j.job_id, {
+          onStageComplete: (data) => {
+            setJobStates((prev) => prev.map((s, i) =>
+              i === idx ? { ...s, stages: { ...s.stages, [data.stage]: data } } : s
+            ));
+          },
+          onDone: (data) => {
+            setJobStates((prev) => {
+              const updated = prev.map((s, i) =>
+                i === idx ? {
+                  ...s, done: true, result: data.result,
+                  analysisId: data.analysis_id,
+                  trajectoryId: data.trajectory_id,
+                } : s
+              );
+              // If all jobs done, show first result
+              if (updated.every((s) => s.done || s.error)) {
+                const first = updated.find((s) => s.done);
+                if (first?.analysisId) {
+                  window.history.pushState(null, "", `#/results/${first.analysisId}`);
+                }
+                setTimeout(() => setPhase("done"), 0);
+              }
+              return updated;
+            });
+          },
+          onError: (data) => {
+            setJobStates((prev) => {
+              const updated = prev.map((s, i) =>
+                i === idx ? { ...s, error: data, done: true } : s
+              );
+              if (updated.every((s) => s.done || s.error)) {
+                if (updated.every((s) => s.error)) {
+                  setError(data);
+                  setTimeout(() => setPhase("error"), 0);
+                } else {
+                  setTimeout(() => setPhase("done"), 0);
+                }
+              }
+              return updated;
+            });
+          },
+        });
       });
     } catch (err) {
       setError({ message: err.message });
@@ -72,18 +112,15 @@ export default function useJobStream() {
     }
   }, []);
 
+  // Computed: first successful result for display
+  const firstDone = jobStates.find((s) => s.done && s.result);
+
   return {
-    phase,
-    jobId,
-    analysisId,
-    stages,
-    result,
-    error,
-    handleSubmit,
-    reset,
-    setPhase,
-    setResult,
-    setAnalysisId,
-    setError,
+    phase, groupId, jobStates, error,
+    result: firstDone?.result || null,
+    analysisId: firstDone?.analysisId || null,
+    handleSubmit, reset,
+    setPhase, setResult: () => {}, setAnalysisId: () => {},
+    setError, setGroupId, setJobStates,
   };
 }
