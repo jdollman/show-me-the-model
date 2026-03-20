@@ -7,14 +7,39 @@ from openai import AsyncOpenAI
 
 MODEL_REGISTRY = {
     # Anthropic
-    "claude-sonnet-4-6":       {"provider": "anthropic", "tier": "workhorse", "short_name": "Sonnet",        "pricing": {"input": 3.00e-6,  "output": 15.00e-6}},
-    "claude-opus-4-6":         {"provider": "anthropic", "tier": "synthesis", "short_name": "Opus",          "pricing": {"input": 15.00e-6, "output": 75.00e-6}},
+    "claude-sonnet-4-6": {
+        "provider": "anthropic", "tier": "workhorse",
+        "short_name": "Sonnet",
+        "pricing": {"input": 3.00e-6, "output": 15.00e-6},
+    },
+    "claude-opus-4-6": {
+        "provider": "anthropic", "tier": "synthesis",
+        "short_name": "Opus",
+        "pricing": {"input": 15.00e-6, "output": 75.00e-6},
+    },
     # OpenAI
-    "gpt-5-mini":              {"provider": "openai",    "tier": "workhorse", "short_name": "GPT-5 mini",    "pricing": {"input": 1.50e-6,  "output": 6.00e-6},  "no_temperature": True},
-    "gpt-5.4":                 {"provider": "openai",    "tier": "synthesis", "short_name": "GPT-5.4",       "pricing": {"input": 10.00e-6, "output": 30.00e-6}},
-    # xAI — reasoning variants (chain-of-thought is internal; content field is the final answer)
-    "grok-4-1-fast-reasoning": {"provider": "xai",       "tier": "workhorse", "short_name": "Grok 4.1 Fast", "pricing": {"input": 0.20e-6,  "output": 0.50e-6}},
-    "grok-4.20-0309-reasoning":{"provider": "xai",       "tier": "synthesis", "short_name": "Grok 4.20",     "pricing": {"input": 2.00e-6,  "output": 6.00e-6}},
+    "gpt-5-mini": {
+        "provider": "openai", "tier": "workhorse",
+        "short_name": "GPT-5 mini",
+        "pricing": {"input": 1.50e-6, "output": 6.00e-6},
+        "no_temperature": True,
+    },
+    "gpt-5.4": {
+        "provider": "openai", "tier": "synthesis",
+        "short_name": "GPT-5.4",
+        "pricing": {"input": 10.00e-6, "output": 30.00e-6},
+    },
+    # xAI — reasoning variants (chain-of-thought internal)
+    "grok-4-1-fast-reasoning": {
+        "provider": "xai", "tier": "workhorse",
+        "short_name": "Grok 4.1 Fast",
+        "pricing": {"input": 0.20e-6, "output": 0.50e-6},
+    },
+    "grok-4.20-0309-reasoning": {
+        "provider": "xai", "tier": "synthesis",
+        "short_name": "Grok 4.20",
+        "pricing": {"input": 2.00e-6, "output": 6.00e-6},
+    },
 }
 
 _PROVIDER_ENV_KEYS = {
