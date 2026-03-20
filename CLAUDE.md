@@ -18,7 +18,7 @@ cd frontend && npx vite build            # production build → frontend/dist/
 The app is a React frontend + FastAPI backend. The frontend is a single-page app; Vite proxies `/api` to the backend during development, and Nginx does the same in production.
 
 **Backend entry point:** `backend/main.py`
-- Routes: `POST /analyze`, `GET /jobs/{id}/stream` (SSE), `GET /jobs/{id}`, `GET /results/{id}`, `GET /health`
+- Routes: `POST /analyze`, `GET /jobs/{id}/stream` (SSE), `GET /jobs/{id}`, `GET /results/{id}`, `GET /models`, `GET /trajectories`, `GET /trajectories/{id}`, `GET /health`
 - Background jobs run in asyncio tasks; progress is streamed to the frontend via Server-Sent Events
 
 **Pipeline:** `backend/pipeline.py`

@@ -15,8 +15,6 @@ import { submitJob, connectSSE } from "../api";
  *   handleSubmit: (formData: Object) => Promise<void>,
  *   reset: (opts?: { pushHistory?: boolean }) => void,
  *   setPhase: (phase: string) => void,
- *   setResult: (result: Object) => void,
- *   setAnalysisId: (id: string) => void,
  *   setError: (error: Object) => void,
  *   setGroupId: (id: string) => void,
  *   setJobStates: (states: Array) => void,
@@ -120,7 +118,6 @@ export default function useJobStream() {
     result: firstDone?.result || null,
     analysisId: firstDone?.analysisId || null,
     handleSubmit, reset,
-    setPhase, setResult: () => {}, setAnalysisId: () => {},
-    setError, setGroupId, setJobStates,
+    setPhase, setError, setGroupId, setJobStates,
   };
 }

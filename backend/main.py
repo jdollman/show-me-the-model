@@ -38,6 +38,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 store = JobStore()
+_email_sent_groups: set[str] = set()
 limiter = Limiter(key_func=get_remote_address)
 
 EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -250,11 +251,9 @@ async def _run_job(
         )
 
         # Email: send only for the first completed job in the group
-        if job.email:
-            group_jobs = store.get_group(job.group_id)
-            completed_in_group = [j for j in group_jobs if j.status == JobStatus.COMPLETED]
-            if len(completed_in_group) <= 1:
-                await send_results_email(job.email, analysis_id, base_url)
+        if job.email and job.group_id not in _email_sent_groups:
+            _email_sent_groups.add(job.group_id)
+            await send_results_email(job.email, analysis_id, base_url)
 
     except Exception as exc:
         logger.exception("Pipeline failed for job %s", job_id)
@@ -288,7 +287,6 @@ async def analyze(
     url: str | None = Form(None),
     email: str | None = Form(None),
     file: UploadFile | None = File(None),
-    x_api_key: str | None = Header(None),
     x_provider: str | None = Header(None),
 ):
     """Submit text for analysis. Accepts JSON body or multipart form (for PDF upload)."""
@@ -331,6 +329,8 @@ async def analyze(
     for config in configurations:
         for key in ("workhorse_model", "synthesis_model"):
             model = config.get(key)
+            if not model and key == "synthesis_model":
+                raise HTTPException(status_code=400, detail="synthesis_model is required")
             if model and model not in MODEL_REGISTRY:
                 raise HTTPException(status_code=400, detail=f"Unknown model: {model}")
 

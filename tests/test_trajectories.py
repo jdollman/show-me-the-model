@@ -3,6 +3,7 @@
 import pytest
 
 from backend.trajectories import (
+    _validate_id,
     generate_group_id,
     generate_trajectory_id,
     get_reuse_stages,
@@ -123,6 +124,31 @@ class TestGetReuseStages:
         assert "synthesis" not in stages
         assert meta["workhorse_model"] == "claude-sonnet-4-6"
         assert meta["group_id"] == "g_r"
+
+
+class TestPathTraversal:
+    def test_slash_rejected(self):
+        with pytest.raises(ValueError, match="Invalid trajectory ID"):
+            _validate_id("../../../etc/passwd")
+
+    def test_backslash_rejected(self):
+        with pytest.raises(ValueError, match="Invalid trajectory ID"):
+            _validate_id("t_foo\\bar")
+
+    def test_dotdot_rejected(self):
+        with pytest.raises(ValueError, match="Invalid trajectory ID"):
+            _validate_id("t_foo..bar")
+
+    def test_forward_slash_rejected(self):
+        with pytest.raises(ValueError, match="Invalid trajectory ID"):
+            _validate_id("t_foo/bar")
+
+    def test_load_with_traversal_rejected(self):
+        with pytest.raises(ValueError, match="Invalid trajectory ID"):
+            load_trajectory("../../../etc/passwd")
+
+    def test_valid_id_passes(self):
+        _validate_id("t_abc123")  # should not raise
 
 
 class TestHelpers:

@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { fetchResult, fetchTrajectories } from "../api";
+import { fetchResult, fetchTrajectories, fetchModels } from "../api";
 
 /**
  * Parses the URL hash and returns an analysis ID if present.
@@ -17,32 +17,35 @@ function parseHashRoute() {
  *
  * @param {{
  *   setPhase: (phase: string) => void,
- *   setResult: (result: Object) => void,
- *   setAnalysisId: (id: string) => void,
  *   setError: (error: Object) => void,
  *   reset: (opts?: { pushHistory?: boolean }) => void,
+ *   setGroupId: (id: string) => void,
+ *   setJobStates: (states: Array) => void,
  * }} handlers
  */
-export default function useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset, setGroupId, setJobStates }) {
+export default function useResultRouting({ setPhase, setError, reset, setGroupId, setJobStates }) {
   const loadResultById = useCallback(
     (hashId) => {
       setPhase("running");
       setError(null);
       fetchResult(hashId)
         .then(async (data) => {
-          setResult(data);
-          setAnalysisId(data.analysis_id || hashId);
-
-          // Load group siblings for version navigator
           const groupId = data?.metadata?.group_id;
+
           if (groupId && setGroupId && setJobStates) {
             setGroupId(groupId);
             try {
-              const trajectories = await fetchTrajectories();
+              const [models, trajectories] = await Promise.all([
+                fetchModels().catch(() => []),
+                fetchTrajectories(),
+              ]);
+              const shortName = Object.fromEntries(
+                models.map((m) => [m.id, m.short_name])
+              );
               const siblings = trajectories.filter((t) => t.group_id === groupId);
               const states = siblings.map((t) => ({
                 jobId: t.trajectory_id,
-                label: `${t.workhorse_model} → ${t.synthesis_model}`,
+                label: `${shortName[t.workhorse_model] || t.workhorse_model} \u2192 ${shortName[t.synthesis_model] || t.synthesis_model}`,
                 stages: {},
                 result: t.analysis_id === (data.analysis_id || hashId) ? data : null,
                 analysisId: t.analysis_id,
@@ -52,8 +55,30 @@ export default function useResultRouting({ setPhase, setResult, setAnalysisId, s
               }));
               setJobStates(states);
             } catch (e) {
-              // Non-fatal: version navigator just won't show
+              // Fallback: just show the single result
+              setJobStates([{
+                jobId: hashId,
+                label: "",
+                stages: {},
+                result: data,
+                analysisId: data.analysis_id || hashId,
+                trajectoryId: null,
+                error: null,
+                done: true,
+              }]);
             }
+          } else if (setJobStates) {
+            // No group info (pre-existing result) — single-item jobStates
+            setJobStates([{
+              jobId: hashId,
+              label: "",
+              stages: {},
+              result: data,
+              analysisId: data.analysis_id || hashId,
+              trajectoryId: null,
+              error: null,
+              done: true,
+            }]);
           }
 
           setPhase("done");
@@ -63,7 +88,7 @@ export default function useResultRouting({ setPhase, setResult, setAnalysisId, s
           setPhase("error");
         });
     },
-    [setPhase, setResult, setAnalysisId, setError, setGroupId, setJobStates]
+    [setPhase, setError, setGroupId, setJobStates]
   );
 
   const navigateToHash = useCallback(() => {
@@ -85,7 +110,18 @@ export default function useResultRouting({ setPhase, setResult, setAnalysisId, s
       fetch("/sample-result.json")
         .then((res) => res.json())
         .then((data) => {
-          setResult(data);
+          if (setJobStates) {
+            setJobStates([{
+              jobId: "demo",
+              label: "Demo",
+              stages: {},
+              result: data,
+              analysisId: data.analysis_id || "demo",
+              trajectoryId: null,
+              error: null,
+              done: true,
+            }]);
+          }
           setPhase("done");
         })
         .catch((err) => {
@@ -96,7 +132,7 @@ export default function useResultRouting({ setPhase, setResult, setAnalysisId, s
 
     window.addEventListener("popstate", navigateToHash);
     return () => window.removeEventListener("popstate", navigateToHash);
-  }, [navigateToHash, setPhase, setResult, setError]);
+  }, [navigateToHash, setPhase, setJobStates, setError]);
 
   return { loadResultById };
 }
