@@ -84,6 +84,7 @@ export default function InputForm({ onSubmit }) {
 
   const [pastAnalyses, setPastAnalyses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedHash, setExpandedHash] = useState(null);
 
   useEffect(() => {
     fetchTrajectories()
@@ -325,39 +326,73 @@ export default function InputForm({ onSubmit }) {
           style={inputBase}
         />
       )}
-      <div className="space-y-1">
-        {filteredGroups.map((group) => (
-          <div key={group.runs[0].source_text_hash || group.runs[0].trajectory_id}>
-            <button
-              onClick={() => navigateTo(group.analysisId)}
-              className="w-full text-left px-3 py-2.5 rounded-md text-sm font-body transition-colors cursor-pointer hover:brightness-95"
-              style={{ background: "var(--smtm-bg-input)", border: "1px solid var(--smtm-border-input)" }}
-            >
-              <span className="font-medium" style={{ color: "var(--smtm-text-primary)" }}>
-                {group.title}
-              </span>
-              {group.author && (
-                <span className="ml-1.5" style={{ color: "var(--smtm-text-muted)" }}>
-                  by {group.author}
-                </span>
-              )}
-              <div className="flex items-center gap-3 mt-0.5 text-xs" style={{ color: "var(--smtm-text-muted)" }}>
-                <span>
-                  {group.runs.length} version{group.runs.length !== 1 ? "s" : ""}
-                </span>
-                <span>
-                  {group.runs.map((r) => {
-                    const w = r.workhorse_model?.split("-")[0] || "";
-                    return w.charAt(0).toUpperCase() + w.slice(1);
-                  }).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
-                </span>
-                {group.latestDate && (
-                  <span>{new Date(group.latestDate).toLocaleDateString()}</span>
+      <div className="space-y-1.5">
+        {filteredGroups.map((group) => {
+          const hash = group.runs[0].source_text_hash || group.runs[0].trajectory_id;
+          const isExpanded = expandedHash === hash;
+          const hasMultiple = group.runs.length > 1;
+          const modelLabel = (r) => {
+            const w = models.find((m) => m.id === r.workhorse_model);
+            const s = models.find((m) => m.id === r.synthesis_model);
+            return `${w?.short_name || r.workhorse_model} \u2192 ${s?.short_name || r.synthesis_model}`;
+          };
+          return (
+            <div key={hash}>
+              <button
+                onClick={() => hasMultiple
+                  ? setExpandedHash(isExpanded ? null : hash)
+                  : navigateTo(group.analysisId)
+                }
+                className="w-full text-left px-3 py-2.5 rounded-md text-sm font-body transition-colors cursor-pointer hover:brightness-95"
+                style={{ background: "var(--smtm-bg-input)", border: "1px solid var(--smtm-border-input)" }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-medium" style={{ color: "var(--smtm-text-primary)" }}>
+                      {group.title}
+                    </span>
+                    {group.author && (
+                      <span className="ml-1.5" style={{ color: "var(--smtm-text-muted)" }}>
+                        by {group.author}
+                      </span>
+                    )}
+                  </div>
+                  {hasMultiple && (
+                    <span className="text-xs shrink-0 mt-0.5" style={{ color: "var(--smtm-text-muted)" }}>
+                      {isExpanded ? "\u25BC" : "\u25B6"} {group.runs.length} versions
+                    </span>
+                  )}
+                </div>
+                {!hasMultiple && (
+                  <div className="text-xs mt-0.5" style={{ color: "var(--smtm-text-muted)" }}>
+                    {modelLabel(group.runs[0])}
+                    {group.latestDate && <span className="ml-3">{new Date(group.latestDate).toLocaleDateString()}</span>}
+                  </div>
                 )}
-              </div>
-            </button>
-          </div>
-        ))}
+              </button>
+              {isExpanded && (
+                <div className="ml-3 mt-1 space-y-1 border-l-2 pl-3" style={{ borderColor: "var(--smtm-accent-orange)" }}>
+                  {group.runs.map((run) => (
+                    <button
+                      key={run.trajectory_id}
+                      onClick={() => navigateTo(run.analysis_id)}
+                      className="w-full text-left px-3 py-2 rounded text-sm font-body cursor-pointer transition-colors hover:brightness-95"
+                      style={{ background: "var(--smtm-bg-input)", border: "1px solid var(--smtm-border-input)" }}
+                    >
+                      <span style={{ color: "var(--smtm-text-primary)" }}>
+                        {modelLabel(run)}
+                      </span>
+                      <div className="flex items-center gap-3 text-xs mt-0.5" style={{ color: "var(--smtm-text-muted)" }}>
+                        {run.estimated_cost != null && <span>${run.estimated_cost < 0.01 ? run.estimated_cost.toFixed(4) : run.estimated_cost.toFixed(2)}</span>}
+                        {run.created_at && <span>{new Date(run.created_at).toLocaleDateString()}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
         {filteredGroups.length === 0 && searchQuery && (
           <p className="text-sm py-2 px-3 font-body" style={{ color: "var(--smtm-text-muted)" }}>
             No matches for &ldquo;{searchQuery}&rdquo;
