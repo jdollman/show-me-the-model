@@ -6,7 +6,6 @@ import ContradictionCard from "./results/ContradictionCard";
 import SideNav from "./results/SideNav";
 import AnnotationCard from "./AnnotationCard";
 import DecompositionView from "./DecompositionView";
-import MethodologySection from "./results/MethodologySection";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { useTheme } from "../context/ThemeContext";
 
@@ -140,7 +139,6 @@ export default function ResultsView({ result, analysisId, groupId, jobStates = [
       "contradictions",
       "strengths",
       "alternative",
-      "methodology",
     ];
     const observer = new IntersectionObserver(
       (entries) => {
@@ -179,14 +177,8 @@ export default function ResultsView({ result, analysisId, groupId, jobStates = [
             >
               Show Me the Model
             </span>
-            <div className="sm:hidden">
-              <ThemeSwitcher compact />
-            </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden sm:block">
-              <ThemeSwitcher compact />
-            </div>
             <button
               onClick={onReset}
               className="px-5 py-2 rounded-lg border text-[13px] cursor-pointer font-body font-medium transition-all w-full sm:w-auto"
@@ -578,15 +570,7 @@ export default function ResultsView({ result, analysisId, groupId, jobStates = [
             </section>
           )}
 
-          {/* === METHODOLOGY === */}
-          <section id="methodology" className="mt-10 scroll-mt-20">
-            <SectionHeader
-              title="How This Works"
-              subtitle="Six analytical lenses applied to every essay"
-              icon="?"
-            />
-            <MethodologySection />
-          </section>
+          {/* Methodology moved to standalone page via toolbar */}
 
           {/* === DECOMPOSITION === */}
           <div className="mt-10">

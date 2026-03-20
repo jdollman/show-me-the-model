@@ -45,7 +45,6 @@ export default function InputForm({ onSubmit }) {
   const [url, setUrl] = useState("");
   const [file, setFile] = useState(null);
   const { configurations, addConfiguration, removeConfiguration, updateConfiguration } = useApiSettings();
-  const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [models, setModels] = useState([]);
   const [modelsLoading, setModelsLoading] = useState(true);
@@ -74,7 +73,6 @@ export default function InputForm({ onSubmit }) {
         text: tab === "text" ? text : undefined,
         url: tab === "url" ? url : undefined,
         file: tab === "file" ? file : undefined,
-        email: email || undefined,
         configurations,
       });
     } finally {
@@ -281,20 +279,6 @@ export default function InputForm({ onSubmit }) {
             </div>
           )}
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
-          Email (optional)
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Get notified when analysis is complete"
-          className={`w-full rounded-md border px-3 py-2 text-sm ${inputFocus}`}
-          style={inputBase}
-        />
       </div>
 
       <button

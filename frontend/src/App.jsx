@@ -1,3 +1,4 @@
+import { useState } from "react";
 import useJobStream from "./hooks/useJobStream";
 import useResultRouting from "./hooks/useResultRouting";
 import InputForm from "./components/InputForm";
@@ -5,33 +6,99 @@ import ProgressTracker from "./components/ProgressTracker";
 import ResultsView from "./components/ResultsView";
 import ErrorMessage from "./components/ErrorMessage";
 import ThemeSwitcher from "./components/ThemeSwitcher";
+import MethodologySection from "./components/results/MethodologySection";
+import SectionHeader from "./components/results/SectionHeader";
 
 const STAGE_ORDER = ["decomposition", "stage2", "dedup", "synthesis"];
 
+function MethodologyOverlay({ onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] overflow-y-auto"
+      style={{ background: "var(--smtm-bg-page, var(--color-bg))" }}
+    >
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h1
+            className="text-2xl font-bold font-display tracking-tight"
+            style={{ color: "var(--smtm-text-primary, var(--color-heading))" }}
+          >
+            How This Works
+          </h1>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium font-body cursor-pointer"
+            style={{
+              background: "var(--smtm-btn-secondary-bg)",
+              border: "1px solid var(--smtm-btn-secondary-border, var(--smtm-border-default))",
+              color: "var(--smtm-btn-secondary-text, var(--smtm-text-secondary))",
+            }}
+          >
+            Close
+          </button>
+        </div>
+        <MethodologySection />
+      </div>
+    </div>
+  );
+}
+
+function Toolbar({ showMethodology, setShowMethodology }) {
+  return (
+    <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+      <button
+        onClick={() => setShowMethodology(true)}
+        className="px-2.5 py-1.5 rounded-lg text-xs font-medium font-body cursor-pointer transition-all duration-150"
+        style={{
+          background: "var(--smtm-btn-secondary-bg)",
+          color: "var(--smtm-text-secondary)",
+          border: "1px solid var(--smtm-border-default)",
+        }}
+        title="How the analysis pipeline works"
+      >
+        ? How it works
+      </button>
+      <button
+        onClick={() => { if (confirm("Shut down the server?")) fetch("/api/shutdown", { method: "POST" }).then(() => document.title = "Server stopped"); }}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold font-body cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
+        style={{ color: "var(--smtm-accent-orange)", border: "2px solid var(--smtm-accent-orange)", background: "transparent" }}
+        title="Shut down dev server"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <line x1="12" y1="2" x2="12" y2="12" />
+          <path d="M16.24 7.76a8 8 0 1 1-8.49 0" />
+        </svg>
+        Server
+      </button>
+      <ThemeSwitcher />
+    </div>
+  );
+}
+
 export default function App() {
+  const [showMethodology, setShowMethodology] = useState(false);
   const { phase, groupId, jobStates, result, analysisId, error, handleSubmit, reset,
           setPhase, setError, setGroupId, setJobStates } = useJobStream();
 
   useResultRouting({ setPhase, setError, reset, setGroupId, setJobStates });
 
+  if (showMethodology) {
+    return <MethodologyOverlay onClose={() => setShowMethodology(false)} />;
+  }
+
   if (phase === "done") {
-    return <ResultsView result={result} analysisId={analysisId} groupId={groupId}
-                        jobStates={jobStates} onReset={reset} />;
+    return (
+      <>
+        <Toolbar showMethodology={showMethodology} setShowMethodology={setShowMethodology} />
+        <ResultsView result={result} analysisId={analysisId} groupId={groupId}
+                      jobStates={jobStates} onReset={reset} />
+      </>
+    );
   }
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
-      <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
-        <button
-          onClick={() => { if (confirm("Shut down the server?")) fetch("/api/shutdown", { method: "POST" }).then(() => document.title = "Server stopped"); }}
-          className="px-2.5 py-1.5 rounded-lg text-xs font-bold font-body cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
-          style={{ color: "var(--smtm-accent-orange)", border: "2px solid var(--smtm-accent-orange)", background: "transparent" }}
-          title="Shut down dev server"
-        >
-          Stop
-        </button>
-        <ThemeSwitcher />
-      </div>
+      <Toolbar showMethodology={showMethodology} setShowMethodology={setShowMethodology} />
       <div className="max-w-3xl mx-auto px-4 py-12">
         <header className="text-center mb-10">
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-[var(--color-heading)]">
