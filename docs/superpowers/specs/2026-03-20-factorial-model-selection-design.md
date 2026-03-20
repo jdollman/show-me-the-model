@@ -15,17 +15,23 @@ Replace the provider-based dispatch with a model registry. Model name is the pri
 
 ```python
 MODEL_REGISTRY = {
-    "claude-sonnet-4-6":         {"provider": "anthropic", "tier": "workhorse",  "pricing": {"input": 3.00e-6,  "output": 15.00e-6}},
-    "claude-opus-4-6":           {"provider": "anthropic", "tier": "synthesis",  "pricing": {"input": 15.00e-6, "output": 75.00e-6}},
-    "gpt-5-mini":                {"provider": "openai",    "tier": "workhorse",  "pricing": {"input": 1.50e-6,  "output": 6.00e-6}},
-    "gpt-5.4":                   {"provider": "openai",    "tier": "synthesis",  "pricing": {"input": 10.00e-6, "output": 30.00e-6}},
-    "grok-4-1-fast-reasoning":   {"provider": "xai",       "tier": "workhorse",  "pricing": {"input": 0.20e-6,  "output": 0.50e-6}},
-    "grok-4.20-0309-reasoning":  {"provider": "xai",       "tier": "synthesis",  "pricing": {"input": 2.00e-6,  "output": 6.00e-6}},
+    # Anthropic
+    "claude-sonnet-4-6":         {"provider": "anthropic", "tier": "workhorse",  "short_name": "Sonnet",     "pricing": {"input": 3.00e-6,  "output": 15.00e-6}},
+    "claude-opus-4-6":           {"provider": "anthropic", "tier": "synthesis",  "short_name": "Opus",       "pricing": {"input": 15.00e-6, "output": 75.00e-6}},
+    # OpenAI
+    "gpt-5-mini":                {"provider": "openai",    "tier": "workhorse",  "short_name": "GPT-5 mini", "pricing": {"input": 1.50e-6,  "output": 6.00e-6},  "no_temperature": True},
+    "gpt-5.4":                   {"provider": "openai",    "tier": "synthesis",  "short_name": "GPT-5.4",    "pricing": {"input": 10.00e-6, "output": 30.00e-6}},
+    # xAI — reasoning variants (reasoning is internal; content field is just the answer)
+    "grok-4-1-fast-reasoning":   {"provider": "xai",       "tier": "workhorse",  "short_name": "Grok 4.1 Fast", "pricing": {"input": 0.20e-6,  "output": 0.50e-6}},
+    "grok-4.20-0309-reasoning":  {"provider": "xai",       "tier": "synthesis",  "short_name": "Grok 4.20",     "pricing": {"input": 2.00e-6,  "output": 6.00e-6}},
 }
 ```
 
 - `tier` is a UI hint (which dropdown to show the model in first) but any model can go in either slot.
 - `pricing` consolidates the current `_PRICING` dict into the registry.
+- `short_name` is used for human-readable labels in the UI (e.g., "Sonnet → Opus" in version navigator and job response labels).
+- `no_temperature` (optional, default False): when True, `_call_openai` omits the `temperature` parameter. Currently only applies to `gpt-5-mini`. Replaces the existing `_OPENAI_NO_TEMPERATURE` set.
+- xAI models use the **reasoning** variants intentionally. Per xAI docs, grok-4 reasoning models keep chain-of-thought internal — the `content` field contains only the final answer. The non-reasoning variants from the prior commit are replaced.
 - New models/providers are added by adding a row to the registry + the corresponding env var.
 
 ### Client Dispatch
@@ -109,9 +115,11 @@ Every run saves a trajectory file to `trajectories/{trajectory_id}.json`:
 
 - `source_text_hash`: SHA-256 of the source text. Links trajectories on the same essay without duplicating text.
 - `reused_from`: trajectory ID whose stages 1-2.5 were reused, or null. The reused stage data is copied into this trajectory so it's self-contained.
-- `group_id`: ties together trajectories from a single parallel submission, used by the frontend for click-through navigation.
+- `group_id`: generated as `"g_" + secrets.token_urlsafe(6)`. Ties together trajectories from a single parallel submission, used by the frontend for click-through navigation. Re-synthesis jobs inherit the group_id of the trajectory they reuse, so they appear as additional versions alongside the originals.
+- `stage2.result` contains the full 6-pass results dict (keys: `identities`, `general_eq`, `exog_endog`, `quantitative`, `consistency`, `steelman`), matching the current `run_stage2` return format. `stage2.usage` is the sum across all 6 passes.
 - Each stage records its own model independently, supporting future per-stage model selection without a format change.
-- `trajectories/` directory is gitignored.
+- `trajectories/` directory is gitignored (add to `.gitignore`).
+- Trajectories **supplement** the existing `results/` files, not replace them. `results/{analysis_id}.json` continues to be written for shareable URL compatibility. The trajectory contains the full per-stage trace; the result file contains the rendered output.
 
 ### API Changes
 
@@ -140,9 +148,13 @@ For re-synthesis from a saved trajectory:
 }
 ```
 
-When `reuse_trajectory` is set, stages 1-2.5 are loaded from the trajectory. `workhorse_model` and `text` are not required.
+When `reuse_trajectory` is set, stages 1-2.5 are loaded from the trajectory. `workhorse_model` and `text` are not required. If `workhorse_model` is provided alongside `reuse_trajectory`, it is ignored (the workhorse model is determined by the saved trajectory).
 
-Response returns a group ID and per-configuration job IDs:
+**Validation:** If `reuse_trajectory` references a trajectory that doesn't exist, is corrupt, or has incomplete workhorse stages (e.g., original run failed mid-pipeline), return HTTP 400 with a descriptive error. Per the project's "Fail Loudly" principle, never silently fall back to re-running stages.
+
+**Limits:** Maximum 5 configurations per submission. Return HTTP 400 if exceeded.
+
+Response returns a group ID and per-configuration job IDs. Labels are derived from `short_name` in the model registry:
 
 ```json
 {
@@ -247,24 +259,46 @@ In the results view, a "Re-synthesize with different model" button. Shows a synt
 The old request format (single `X-Provider` header, no `configurations` array) continues to work. `main.py` detects the old format and converts it to the new format internally:
 
 ```python
+# Provider-to-model defaults for backwards compatibility
+_PROVIDER_DEFAULTS = {
+    "anthropic": {"workhorse": "claude-sonnet-4-6",       "synthesis": "claude-opus-4-6"},
+    "openai":    {"workhorse": "gpt-5-mini",              "synthesis": "gpt-5.4"},
+    "xai":       {"workhorse": "grok-4-1-fast-reasoning", "synthesis": "grok-4.20-0309-reasoning"},
+}
+
 if not configurations:
     provider = x_provider or "anthropic"
-    configurations = [{"workhorse_model": default_workhorse(provider), "synthesis_model": default_synthesis(provider)}]
+    defaults = _PROVIDER_DEFAULTS[provider]
+    configurations = [{"workhorse_model": defaults["workhorse"], "synthesis_model": defaults["synthesis"]}]
 ```
 
 This keeps the upstream hosted version functional.
+
+### Email Behavior
+
+For parallel submissions, email notification is sent once when the **first** job in the group completes, with a link to the group's results. Subsequent completions do not trigger additional emails.
+
+### xAI Compatibility Notes
+
+- xAI's OpenAI-compatible API supports `response_format: {"type": "json_object"}`. If a future model doesn't, add a `no_json_mode` flag to the registry (same pattern as `no_temperature`).
+- xAI reasoning models reject `presencePenalty`, `frequencyPenalty`, and `stop` parameters. The app doesn't use any of these, so no change needed.
+
+### Memory Efficiency
+
+For parallel runs on the same essay, the `Job` dataclass stores `source_text` once on the first job. Subsequent jobs in the same group reference the first job's text via `group_id` lookup in the `JobStore`. This avoids N copies of potentially large (50KB) essays in memory.
 
 ### Files Changed
 
 | File | Change |
 |------|--------|
-| `backend/pipeline.py` | Model registry, client cache, `_call_model` takes model name not client, `run_pipeline` takes model names + `reuse_stages` |
-| `backend/main.py` | `/analyze` accepts configurations array + `reuse_trajectory`, spawns parallel jobs, new `/trajectories`, `/trajectories/{id}`, `/models` endpoints |
-| `backend/jobs.py` | Job dataclass gets `group_id`, `workhorse_model`, `synthesis_model`, `trajectory_id` fields |
+| `backend/pipeline.py` | Model registry, client cache, `_call_model` takes model name not client, `run_pipeline` takes model names + `reuse_stages`, delete `_map_model_for_openai`/`_map_model_for_xai`/`_PRICING`/`_OPENAI_NO_TEMPERATURE` (consolidated into registry) |
+| `backend/main.py` | `/analyze` accepts configurations array + `reuse_trajectory`, spawns parallel jobs, new `/trajectories`, `/trajectories/{id}`, `/models` endpoints, backwards-compat shim with `_PROVIDER_DEFAULTS`, trajectory saving, email-once-per-group logic |
+| `backend/jobs.py` | Job dataclass gets `group_id`, `workhorse_model`, `synthesis_model`, `trajectory_id` fields. `JobStore` gets `get_group(group_id)` method. Source text shared across group. |
+| `.gitignore` | Add `trajectories/` |
 | `frontend/src/components/InputForm.jsx` | Two model dropdowns, add/remove configuration rows, fetch from `/models` |
 | `frontend/src/hooks/useApiSettings.js` | Manage configurations array instead of single provider |
 | `frontend/src/api.js` | `submitJob` sends configurations array, new `fetchTrajectories`/`fetchTrajectory`/`fetchModels` functions |
 | `frontend/src/hooks/useJobStream.js` | Handle multiple SSE streams, track per-job progress |
-| `frontend/src/components/ProgressTracker.jsx` | Show multi-pipeline progress |
-| `frontend/src/components/ResultsView.jsx` | Version navigator bar, re-synthesize button |
+| `frontend/src/components/ProgressTracker.jsx` | Show multi-pipeline progress with per-config labels |
+| `frontend/src/components/ResultsView.jsx` | Version navigator bar, re-synthesize button, replace hardcoded workflow display with model names from trajectory metadata |
 | `frontend/src/hooks/useResultRouting.js` | Load group info for version navigation |
