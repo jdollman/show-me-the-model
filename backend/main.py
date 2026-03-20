@@ -7,14 +7,13 @@ import os
 import re
 import secrets
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncGenerator
 
-from anthropic import AsyncAnthropic
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from openai import AsyncOpenAI
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -23,17 +22,17 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.email_notify import send_results_email
 from backend.jobs import STAGE_NAMES, JobStatus, JobStore
+from backend.models import _PROVIDER_DEFAULTS, MODEL_REGISTRY, get_available_models, get_model_label
 from backend.pipeline import run_pipeline
 from backend.text_extract import extract_from_pdf, extract_from_url, validate_text
-
-# Map provider names to their environment variable keys
-_PROVIDER_ENV_KEYS = {
-    "anthropic": "ANTHROPIC_API_KEY",
-    "openai": "OPENAI_API_KEY",
-    "xai": "XAI_API_KEY",
-}
-
-VALID_PROVIDERS = set(_PROVIDER_ENV_KEYS.keys())
+from backend.trajectories import (
+    generate_group_id,
+    generate_trajectory_id,
+    get_reuse_stages,
+    list_trajectories,
+    load_trajectory,
+    save_trajectory,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -152,42 +151,62 @@ async def _resolve_source_text(
 # --- Pipeline background task ---
 
 
-async def _run_job(job_id: str, api_key: str, base_url: str, provider: str) -> None:
+async def _run_job(
+    job_id: str,
+    base_url: str,
+    reuse_stages: dict | None = None,
+    reused_stage_data: dict | None = None,
+    reused_from: str | None = None,
+) -> None:
     """Run the pipeline in the background, pushing events to the job's queue."""
     job = store.get(job_id)
     if not job:
         return
-
     job.status = JobStatus.RUNNING
 
-    def on_stage_complete(stage_name: str, result: object) -> None:
+    stage_data = dict(reused_stage_data) if reused_stage_data else {}
+
+    def on_stage_complete(
+        stage_name: str, result: object, usage: dict | None = None, reused: bool = False
+    ) -> None:
         """Synchronous callback invoked by run_pipeline."""
         job.stages_completed.append(stage_name)
         job.partial_results[stage_name] = result
+        if not reused:
+            stage_data[stage_name] = {
+                "model": job.workhorse_model if stage_name != "synthesis" else job.synthesis_model,
+                "result": result,
+                "usage": usage or {},
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
         event = {
             "stage": stage_name,
             "name": STAGE_NAMES.get(stage_name, stage_name),
             "result": result,
+            "reused": reused,
         }
         job.queue.put_nowait(("stage_complete", event))
 
     try:
-        if provider == "xai":
-            client = AsyncOpenAI(api_key=api_key, base_url="https://api.x.ai/v1")
-        elif provider == "openai":
-            client = AsyncOpenAI(api_key=api_key)
-        else:
-            client = AsyncAnthropic(api_key=api_key)
         result = await run_pipeline(
-            client,
             job.source_text,
-            provider=provider,
+            workhorse_model=job.workhorse_model,
+            synthesis_model=job.synthesis_model,
             on_stage_complete=on_stage_complete,
+            reuse_stages=reuse_stages,
         )
-        # Inject metadata from decomposition + job context
+
+        analysis_id = secrets.token_urlsafe(6)
+        result["analysis_id"] = analysis_id
+        trajectory_id = generate_trajectory_id()
+        job.trajectory_id = trajectory_id
+
         decomp = result.get("decomposition", {})
         result["metadata"] = {
-            "workflow": provider,
+            "workhorse_model": job.workhorse_model,
+            "synthesis_model": job.synthesis_model,
+            "trajectory_id": trajectory_id,
+            "group_id": job.group_id,
             "estimated_cost": result.get("estimated_cost"),
             "essay_title": decomp.get("essay_title"),
             "essay_author": decomp.get("essay_author"),
@@ -195,38 +214,55 @@ async def _run_job(job_id: str, api_key: str, base_url: str, provider: str) -> N
             "source_url": job.source_url,
             "input_mode": job.input_mode,
         }
-        # Generate short shareable ID and save result
-        analysis_id = secrets.token_urlsafe(6)  # 8-char URL-safe string
-        result["analysis_id"] = analysis_id
 
-        job.final_result = result
-        job.status = JobStatus.COMPLETED
-        job.queue.put_nowait(
-            ("done", {"job_id": job.id, "analysis_id": analysis_id, "result": result})
+        save_trajectory(
+            trajectory_id=trajectory_id,
+            analysis_id=analysis_id,
+            source_text=job.source_text,
+            input_mode=job.input_mode,
+            source_url=job.source_url,
+            workhorse_model=job.workhorse_model,
+            synthesis_model=job.synthesis_model,
+            stages=stage_data,
+            estimated_cost=result.get("estimated_cost", 0),
+            group_id=job.group_id,
+            reused_from=reused_from,
         )
 
-        # Save result to disk
         results_dir = Path(__file__).resolve().parent.parent / "results"
         results_dir.mkdir(exist_ok=True)
         result_path = results_dir / f"{analysis_id}.json"
         result_path.write_text(json.dumps(result, indent=2))
         logger.info("Saved result to %s (analysis_id=%s)", result_path, analysis_id)
 
+        job.final_result = result
+        job.status = JobStatus.COMPLETED
+        job.queue.put_nowait(
+            (
+                "done",
+                {
+                    "job_id": job.id,
+                    "analysis_id": analysis_id,
+                    "trajectory_id": trajectory_id,
+                    "result": result,
+                },
+            )
+        )
+
+        # Email: send only for the first completed job in the group
         if job.email:
-            await send_results_email(job.email, analysis_id, base_url)
+            group_jobs = store.get_group(job.group_id)
+            completed_in_group = [j for j in group_jobs if j.status == JobStatus.COMPLETED]
+            if len(completed_in_group) <= 1:
+                await send_results_email(job.email, analysis_id, base_url)
 
     except Exception as exc:
         logger.exception("Pipeline failed for job %s", job_id)
         job.status = JobStatus.FAILED
         job.error = str(exc)
-        # Try to figure out which stage failed based on what completed
         completed = set(job.stages_completed)
         stage_order = ["decomposition", "stage2", "dedup", "synthesis"]
-        failed_stage = None
-        for s in stage_order:
-            if s not in completed:
-                failed_stage = s
-                break
+        failed_stage = next((s for s in stage_order if s not in completed), None)
         job.error_stage = failed_stage
         job.queue.put_nowait(("error", {"message": str(exc), "stage": failed_stage}))
     finally:
@@ -235,6 +271,8 @@ async def _run_job(job_id: str, api_key: str, base_url: str, provider: str) -> N
 
 
 # --- Routes ---
+
+MAX_CONFIGURATIONS = 5
 
 
 @app.get("/health")
@@ -252,15 +290,8 @@ async def analyze(
     file: UploadFile | None = File(None),
     x_api_key: str | None = Header(None),
     x_provider: str | None = Header(None),
-) -> dict[str, str]:
+):
     """Submit text for analysis. Accepts JSON body or multipart form (for PDF upload)."""
-    provider = (x_provider or "anthropic").strip().lower()
-    if provider not in VALID_PROVIDERS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"X-Provider must be one of: {', '.join(sorted(VALID_PROVIDERS))}",
-        )
-
     body: dict = {}
     if text is None and url is None and file is None:
         try:
@@ -269,36 +300,120 @@ async def analyze(
         except Exception:
             pass
 
-    # Use server-side env var for the selected provider (fall back to header for
-    # backwards compatibility with the public hosted version).
-    env_key = _PROVIDER_ENV_KEYS[provider]
-    api_key = os.getenv(env_key) or x_api_key
-    if not api_key:
+    configurations = body.get("configurations")
+    reuse_trajectory_id = body.get("reuse_trajectory")
+    if not configurations:
+        form = await request.form()
+        raw_configs = form.get("_configurations")
+        if raw_configs:
+            try:
+                configurations = json.loads(raw_configs)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid _configurations JSON")
+        reuse_trajectory_id = reuse_trajectory_id or form.get("reuse_trajectory")
+
+    # Backwards compatibility: old format with X-Provider header
+    if not configurations:
+        provider = (x_provider or "anthropic").strip().lower()
+        if provider not in _PROVIDER_DEFAULTS:
+            raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+        defaults = _PROVIDER_DEFAULTS[provider]
+        configurations = [
+            {"workhorse_model": defaults["workhorse"], "synthesis_model": defaults["synthesis"]}
+        ]
+
+    if len(configurations) > MAX_CONFIGURATIONS:
         raise HTTPException(
-            status_code=401,
-            detail=f"No API key configured for provider '{provider}' "
-            f"(set {env_key} environment variable)",
+            status_code=400,
+            detail=f"Maximum {MAX_CONFIGURATIONS} configurations per submission",
         )
 
-    if email and not EMAIL_RE.match(email):
-        raise HTTPException(status_code=400, detail="Invalid email address format")
+    for config in configurations:
+        for key in ("workhorse_model", "synthesis_model"):
+            model = config.get(key)
+            if model and model not in MODEL_REGISTRY:
+                raise HTTPException(status_code=400, detail=f"Unknown model: {model}")
 
-    source_text, input_mode, source_url = await _resolve_source_text(text, url, file, body)
+    reuse_stages = None
+    reused_stage_data = None
+    reuse_meta = None
+    if reuse_trajectory_id:
+        try:
+            reuse_stages, reuse_meta = get_reuse_stages(reuse_trajectory_id)
+            reused_stage_data = reuse_meta.pop("workhorse_stage_data")
+        except (FileNotFoundError, ValueError) as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
-    # Create job and spawn background task
-    job = store.create(
-        source_text=source_text,
-        email=email,
-        source_url=source_url,
-        input_mode=input_mode,
-    )
+    if not reuse_trajectory_id:
+        if email and not EMAIL_RE.match(email):
+            raise HTTPException(status_code=400, detail="Invalid email address format")
+        source_text, input_mode, source_url = await _resolve_source_text(text, url, file, body)
+    else:
+        source_text = reuse_meta["source_text"]
+        input_mode = reuse_meta.get("input_mode", "text")
+        source_url = reuse_meta.get("source_url")
+
+    group_id = reuse_meta["group_id"] if reuse_meta else generate_group_id()
     base_url = os.getenv("BASE_URL", str(request.base_url).rstrip("/"))
-    asyncio.create_task(_run_job(job.id, api_key, base_url, provider))
 
-    return {
-        "job_id": job.id,
-        "stream_url": f"/jobs/{job.id}/stream",
-    }
+    jobs = []
+    for config in configurations:
+        workhorse = config.get("workhorse_model") or (
+            reuse_meta["workhorse_model"] if reuse_meta else None
+        )
+        synthesis = config["synthesis_model"]
+        label = get_model_label(workhorse, synthesis)
+
+        job = store.create(
+            source_text=source_text,
+            email=email,
+            source_url=source_url,
+            input_mode=input_mode,
+            group_id=group_id,
+            workhorse_model=workhorse,
+            synthesis_model=synthesis,
+            label=label,
+        )
+        asyncio.create_task(
+            _run_job(
+                job.id,
+                base_url,
+                reuse_stages=reuse_stages,
+                reused_stage_data=reused_stage_data,
+                reused_from=reuse_trajectory_id,
+            )
+        )
+        jobs.append(
+            {
+                "job_id": job.id,
+                "stream_url": f"/jobs/{job.id}/stream",
+                "label": label,
+            }
+        )
+
+    return {"group_id": group_id, "jobs": jobs}
+
+
+@app.get("/models")
+async def get_models():
+    return {"models": get_available_models()}
+
+
+@app.get("/trajectories")
+async def get_trajectories():
+    return list_trajectories()
+
+
+@app.get("/trajectories/{trajectory_id}")
+async def get_trajectory(trajectory_id: str):
+    if not re.match(r"^t_[A-Za-z0-9_-]{6,12}$", trajectory_id):
+        raise HTTPException(status_code=400, detail="Invalid trajectory ID format")
+    try:
+        return load_trajectory(trajectory_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Trajectory not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/jobs/{job_id}/stream")

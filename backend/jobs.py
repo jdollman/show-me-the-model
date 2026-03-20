@@ -37,6 +37,13 @@ class Job:
     email: str | None = None
     source_url: str | None = None
     input_mode: str = "text"
+    # New fields
+    group_id: str = ""
+    workhorse_model: str = ""
+    synthesis_model: str = ""
+    trajectory_id: str = ""
+    label: str = ""
+    # Existing
     stages_completed: list[str] = field(default_factory=list)
     partial_results: dict[str, Any] = field(default_factory=dict)
     final_result: dict | None = None
@@ -51,6 +58,10 @@ class Job:
             "status": self.status.value,
             "stages_completed": self.stages_completed,
             "created_at": self.created_at,
+            "group_id": self.group_id,
+            "workhorse_model": self.workhorse_model,
+            "synthesis_model": self.synthesis_model,
+            "label": self.label,
         }
         if self.final_result is not None:
             d["result"] = self.final_result
@@ -75,6 +86,11 @@ class JobStore:
         email: str | None = None,
         source_url: str | None = None,
         input_mode: str = "text",
+        group_id: str = "",
+        workhorse_model: str = "",
+        synthesis_model: str = "",
+        trajectory_id: str = "",
+        label: str = "",
     ) -> Job:
         job_id = uuid.uuid4().hex[:12]
         job = Job(
@@ -85,12 +101,21 @@ class JobStore:
             email=email,
             source_url=source_url,
             input_mode=input_mode,
+            group_id=group_id,
+            workhorse_model=workhorse_model,
+            synthesis_model=synthesis_model,
+            trajectory_id=trajectory_id,
+            label=label,
         )
         self._jobs[job_id] = job
         return job
 
     def get(self, job_id: str) -> Job | None:
         return self._jobs.get(job_id)
+
+    def get_group(self, group_id: str) -> list[Job]:
+        """Return all jobs belonging to a group."""
+        return [j for j in self._jobs.values() if j.group_id == group_id]
 
     def cleanup_expired(self):
         """Remove jobs older than TTL."""
