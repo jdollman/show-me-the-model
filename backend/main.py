@@ -29,6 +29,7 @@ from backend.trajectories import (
     generate_group_id,
     generate_trajectory_id,
     get_reuse_stages,
+    hash_source_text,
     list_trajectories,
     load_trajectory,
     save_trajectory,
@@ -279,6 +280,16 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.post("/shutdown")
+async def shutdown():
+    """Shut down the server. Only works in local dev (no ALLOWED_ORIGINS set)."""
+    if os.getenv("ALLOWED_ORIGINS"):
+        raise HTTPException(status_code=403, detail="Shutdown disabled in production")
+    logger.info("Shutdown requested via API")
+    os.kill(os.getpid(), 15)  # SIGTERM
+    return {"status": "shutting down"}
+
+
 @app.post("/analyze")
 @limiter.limit("10/minute")
 async def analyze(
@@ -353,7 +364,14 @@ async def analyze(
         input_mode = reuse_meta.get("input_mode", "text")
         source_url = reuse_meta.get("source_url")
 
-    group_id = reuse_meta["group_id"] if reuse_meta else generate_group_id()
+    # Auto-group: if we've seen this exact source text before, join that group
+    if reuse_meta:
+        group_id = reuse_meta["group_id"]
+    else:
+        source_hash = hash_source_text(source_text)
+        existing = list_trajectories()
+        match = next((t for t in existing if t.get("source_text_hash") == source_hash), None)
+        group_id = match["group_id"] if match else generate_group_id()
     base_url = os.getenv("BASE_URL", str(request.base_url).rstrip("/"))
 
     jobs = []

@@ -21,6 +21,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
+      <div className="fixed top-3 left-3 z-50">
+        <button
+          onClick={() => { if (confirm("Shut down the server?")) fetch("/api/shutdown", { method: "POST" }).then(() => document.title = "Server stopped"); }}
+          className="px-2 py-1 rounded text-xs font-body cursor-pointer opacity-40 hover:opacity-100 transition-opacity"
+          style={{ background: "var(--smtm-btn-secondary-bg, #eee)", color: "var(--smtm-text-muted, #999)", border: "1px solid var(--smtm-border-default, #ddd)" }}
+          title="Shut down dev server"
+        >
+          Stop server
+        </button>
+      </div>
       <ThemeSwitcher />
       <div className="max-w-3xl mx-auto px-4 py-12">
         <header className="text-center mb-10">

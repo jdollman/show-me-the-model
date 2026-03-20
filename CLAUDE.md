@@ -81,7 +81,7 @@ PRs #9 and #12 both touch `main.py` — merge #9 before #12. PRs #4 and #7 both 
 
 - `pipeline.py` contains a hardcoded pricing table for cost estimation — update it if models or pricing change.
 - Email notifications use Resend's HTTP API (not SMTP). DigitalOcean blocks outbound SMTP ports. The code sets a custom `User-Agent: ShowMeTheModel/1.0` header because Resend's WAF blocks Python's default user agent.
-- Input limits: 50,000 chars for text, 10 MB for PDFs.
+- Input limits: no character limit for text (was 50,000), 10 MB for PDFs. TODO: show char count in UI with cost warning for large texts.
 - The `eval/` directory contains gold-standard analyses used for prompt evaluation — don't delete or modify those files casually.
 - Stale planning files (`OPENAI_MIGRATION_PLAN.md`, `SUMMARY_DASHBOARD_PLAN.md`, `show-me-the-model-plan.md`, `visual-redesign*.jsx/md`, `next-time.md`) are in the root — these are historical artefacts, not current specs.
 - `batch_size=2` in `run_stage2` is intentional rate-limiting — don't change to full parallel.

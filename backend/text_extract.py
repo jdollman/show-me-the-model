@@ -8,7 +8,9 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-MAX_TEXT_LENGTH = 50_000
+# TODO: Show character count to the user before submission, with a warning
+# when text exceeds ~50K chars (the original limit) about increased cost/time.
+MAX_TEXT_LENGTH = None  # No limit (was 50_000)
 MAX_PDF_SIZE = 10 * 1024 * 1024  # 10 MB
 
 URL_PATTERN = re.compile(
@@ -46,7 +48,7 @@ def validate_text(text: str) -> str:
     """Validate raw text input length."""
     if not text or not text.strip():
         raise ValueError("Text input is empty")
-    if len(text) > MAX_TEXT_LENGTH:
+    if MAX_TEXT_LENGTH and len(text) > MAX_TEXT_LENGTH:
         raise ValueError(f"Text too long ({len(text)} chars). Maximum is {MAX_TEXT_LENGTH}.")
     return text.strip()
 
@@ -63,7 +65,7 @@ async def extract_from_url(url: str) -> str:
     text = trafilatura.extract(downloaded)
     if not text:
         raise ValueError(f"Could not extract text from URL: {url}")
-    if len(text) > MAX_TEXT_LENGTH:
+    if MAX_TEXT_LENGTH and len(text) > MAX_TEXT_LENGTH:
         raise ValueError(
             f"Extracted text too long ({len(text)} chars). Maximum is {MAX_TEXT_LENGTH}."
         )
@@ -84,7 +86,7 @@ async def extract_from_pdf(file_bytes: bytes) -> str:
     text = "\n".join(pages).strip()
     if not text:
         raise ValueError("Could not extract text from PDF (empty or image-only)")
-    if len(text) > MAX_TEXT_LENGTH:
+    if MAX_TEXT_LENGTH and len(text) > MAX_TEXT_LENGTH:
         raise ValueError(
             f"Extracted text too long ({len(text)} chars). Maximum is {MAX_TEXT_LENGTH}."
         )
