@@ -23,19 +23,17 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from anthropic import AsyncAnthropic
-from openai import AsyncOpenAI
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from backend.models import _PROVIDER_DEFAULTS
 from backend.pipeline import (
     run_stage1,
     run_stage2,
@@ -107,18 +105,9 @@ async def run_eval(
     provider: str = "anthropic",
 ):
     """Run the pipeline on a source text and save all outputs."""
-    if provider == "openai":
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            logger.error("OPENAI_API_KEY not set. Add it to your .env file.")
-            sys.exit(1)
-        client = AsyncOpenAI(api_key=api_key)
-    else:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            logger.error("ANTHROPIC_API_KEY not set. Copy .env.example to .env and add your key.")
-            sys.exit(1)
-        client = AsyncAnthropic(api_key=api_key)
+    defaults = _PROVIDER_DEFAULTS.get(provider, _PROVIDER_DEFAULTS["anthropic"])
+    workhorse_model = defaults["workhorse"]
+    synthesis_model = defaults["synthesis"]
     source_text = load_source_text(name)
 
     # Resume from previous run or create new
@@ -145,7 +134,7 @@ async def run_eval(
     else:
         start = time.time()
         logger.info("Stage 1: Decomposition...")
-        decomposition = await run_stage1(client, source_text, provider=provider)
+        decomposition, _usage1 = await run_stage1(source_text, model=workhorse_model)
         elapsed = time.time() - start
         logger.info(f"Stage 1: done ({elapsed:.1f}s)")
         save_output(run_dir, "stage1", decomposition)
@@ -161,7 +150,9 @@ async def run_eval(
     else:
         start = time.time()
         logger.info("Stage 2: Parallel analysis passes...")
-        stage2_results = await run_stage2(client, source_text, decomposition, provider=provider)
+        stage2_results, _usage2 = await run_stage2(
+            source_text, decomposition, model=workhorse_model
+        )
         elapsed = time.time() - start
         logger.info(f"Stage 2: done ({elapsed:.1f}s) — {len(stage2_results)} passes")
         save_output(run_dir, "stage2", stage2_results)
@@ -177,7 +168,7 @@ async def run_eval(
     else:
         start = time.time()
         logger.info("Stage 2.5: Dedup & merge...")
-        merged = await run_stage2_5(client, decomposition, stage2_results, provider=provider)
+        merged, _usage25 = await run_stage2_5(decomposition, stage2_results, model=workhorse_model)
         elapsed = time.time() - start
         logger.info(f"Stage 2.5: done ({elapsed:.1f}s)")
         save_output(run_dir, "stage2_5", merged)
@@ -189,7 +180,7 @@ async def run_eval(
     # Stage 3
     start = time.time()
     logger.info("Stage 3: Synthesis (Opus)...")
-    synthesis = await run_stage3(client, source_text, decomposition, merged, provider=provider)
+    synthesis, _usage3 = await run_stage3(source_text, decomposition, merged, model=synthesis_model)
     elapsed = time.time() - start
     logger.info(f"Stage 3: done ({elapsed:.1f}s)")
     save_output(run_dir, "stage3", synthesis)
@@ -221,7 +212,7 @@ def main():
     )
     parser.add_argument(
         "--provider",
-        choices=["anthropic", "openai"],
+        choices=["anthropic", "openai", "xai"],
         default="anthropic",
         help="LLM provider to use (default: anthropic)",
     )
