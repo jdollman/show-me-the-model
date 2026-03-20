@@ -12,7 +12,7 @@ export default function App() {
   const { phase, groupId, jobStates, result, analysisId, error, handleSubmit, reset,
           setPhase, setResult, setAnalysisId, setError, setGroupId, setJobStates } = useJobStream();
 
-  useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset });
+  useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset, setGroupId, setJobStates });
 
   if (phase === "done") {
     return <ResultsView result={result} analysisId={analysisId} groupId={groupId}

@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { fetchResult } from "../api";
+import { fetchResult, fetchTrajectories } from "../api";
 
 /**
  * Parses the URL hash and returns an analysis ID if present.
@@ -23,15 +23,39 @@ function parseHashRoute() {
  *   reset: (opts?: { pushHistory?: boolean }) => void,
  * }} handlers
  */
-export default function useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset }) {
+export default function useResultRouting({ setPhase, setResult, setAnalysisId, setError, reset, setGroupId, setJobStates }) {
   const loadResultById = useCallback(
     (hashId) => {
       setPhase("running");
       setError(null);
       fetchResult(hashId)
-        .then((data) => {
+        .then(async (data) => {
           setResult(data);
           setAnalysisId(data.analysis_id || hashId);
+
+          // Load group siblings for version navigator
+          const groupId = data?.metadata?.group_id;
+          if (groupId && setGroupId && setJobStates) {
+            setGroupId(groupId);
+            try {
+              const trajectories = await fetchTrajectories();
+              const siblings = trajectories.filter((t) => t.group_id === groupId);
+              const states = siblings.map((t) => ({
+                jobId: t.trajectory_id,
+                label: `${t.workhorse_model} → ${t.synthesis_model}`,
+                stages: {},
+                result: t.analysis_id === (data.analysis_id || hashId) ? data : null,
+                analysisId: t.analysis_id,
+                trajectoryId: t.trajectory_id,
+                error: null,
+                done: true,
+              }));
+              setJobStates(states);
+            } catch (e) {
+              // Non-fatal: version navigator just won't show
+            }
+          }
+
           setPhase("done");
         })
         .catch((err) => {
@@ -39,7 +63,7 @@ export default function useResultRouting({ setPhase, setResult, setAnalysisId, s
           setPhase("error");
         });
     },
-    [setPhase, setResult, setAnalysisId, setError]
+    [setPhase, setResult, setAnalysisId, setError, setGroupId, setJobStates]
   );
 
   const navigateToHash = useCallback(() => {

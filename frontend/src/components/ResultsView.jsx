@@ -76,7 +76,36 @@ function ShareBox({ analysisId }) {
   );
 }
 
-export default function ResultsView({ result, analysisId, onReset }) {
+function VersionNavigator({ jobStates, currentAnalysisId, onSwitch }) {
+  const completed = jobStates.filter((j) => j.done && j.result);
+  if (completed.length <= 1) return null;
+
+  const currentIdx = completed.findIndex((j) => j.analysisId === currentAnalysisId);
+
+  return (
+    <div className="rounded-lg px-4 py-3 mb-6 text-sm" style={{ background: "var(--smtm-share-bg)" }}>
+      <span className="font-medium" style={{ color: "var(--smtm-text-primary)" }}>
+        Version {currentIdx + 1} of {completed.length}: {completed[currentIdx]?.label}
+      </span>
+      <div className="flex gap-3 mt-1">
+        {completed.map((j, i) =>
+          i !== currentIdx ? (
+            <button
+              key={j.analysisId}
+              onClick={() => onSwitch(j)}
+              className="text-sm cursor-pointer hover:underline font-body"
+              style={{ color: "var(--smtm-accent-teal)" }}
+            >
+              ▸ {j.label}
+            </button>
+          ) : null
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function ResultsView({ result, analysisId, groupId, jobStates = [], onReset }) {
   const { synthesis, merged_annotations, decomposition, metadata } = result;
   const [activeSection, setActiveSection] = useState("overview");
   useTheme(); // subscribe so logo rerenders aren't needed (transparent logo)
@@ -88,6 +117,11 @@ export default function ResultsView({ result, analysisId, onReset }) {
   const contradictionsArray = Array.isArray(contradictions)
     ? contradictions
     : [];
+
+  const handleSwitch = (job) => {
+    window.history.pushState(null, "", `#/results/${job.analysisId}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   const criticalAnnotations = annotations.filter(
     (a) => a.severity === "Critical"
@@ -172,6 +206,15 @@ export default function ResultsView({ result, analysisId, onReset }) {
           </div>
         )}
       </header>
+
+      {/* Version Navigator */}
+      <div className="max-w-[1100px] mx-auto px-3 sm:px-6">
+        <VersionNavigator
+          jobStates={jobStates}
+          currentAnalysisId={analysisId}
+          onSwitch={handleSwitch}
+        />
+      </div>
 
       {/* Layout: sidebar + main */}
       <div className="max-w-[1100px] mx-auto flex gap-8 px-3 sm:px-6 pt-6 pb-20">
@@ -279,14 +322,16 @@ export default function ResultsView({ result, analysisId, onReset }) {
           </section>
 
           {/* === WORKFLOW INFO === */}
-          {metadata?.workflow && (
+          {(metadata?.workhorse_model || metadata?.workflow) && (
             <div
               className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs font-body"
               style={{ color: "var(--smtm-text-muted)" }}
             >
               <span>
                 Workflow: <strong style={{ color: "var(--smtm-text-secondary)" }}>
-                  {metadata.workflow === "openai" ? "OpenAI (GPT-5 mini + GPT-5.4)" : "Anthropic (Sonnet + Opus)"}
+                  {metadata?.workhorse_model && metadata?.synthesis_model
+                    ? `${metadata.workhorse_model} → ${metadata.synthesis_model}`
+                    : metadata?.workflow || "Unknown"}
                 </strong>
               </span>
               {metadata.estimated_cost != null && (
