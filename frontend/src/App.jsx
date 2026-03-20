@@ -24,8 +24,8 @@ export default function App() {
       <div className="fixed top-3 left-3 z-50">
         <button
           onClick={() => { if (confirm("Shut down the server?")) fetch("/api/shutdown", { method: "POST" }).then(() => document.title = "Server stopped"); }}
-          className="px-2 py-1 rounded text-xs font-body cursor-pointer opacity-40 hover:opacity-100 transition-opacity"
-          style={{ background: "var(--smtm-btn-secondary-bg, #eee)", color: "var(--smtm-text-muted, #999)", border: "1px solid var(--smtm-border-default, #ddd)" }}
+          className="px-2.5 py-1 rounded text-xs font-bold font-body cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
+          style={{ color: "var(--smtm-accent-orange)", border: "2px solid var(--smtm-accent-orange)", background: "transparent" }}
           title="Shut down dev server"
         >
           Stop server

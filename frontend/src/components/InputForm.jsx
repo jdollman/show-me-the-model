@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useApiSettings from "../hooks/useApiSettings";
-import { fetchModels } from "../api";
+import { fetchModels, fetchTrajectories } from "../api";
 
 const TABS = [
   { key: "text", label: "Paste Text" },
@@ -82,15 +82,49 @@ export default function InputForm({ onSubmit }) {
     }
   };
 
-  const [lookupId, setLookupId] = useState("");
+  const [pastAnalyses, setPastAnalyses] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleLookup = (e) => {
-    e.preventDefault();
-    const id = lookupId.trim();
-    if (id) {
-      window.history.pushState(null, "", `#/results/${id}`);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+  useEffect(() => {
+    fetchTrajectories()
+      .then((data) => setPastAnalyses(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  // Group by source_text_hash, pick the most recent trajectory per group for display
+  const articleGroups = useMemo(() => {
+    const byHash = {};
+    for (const t of pastAnalyses) {
+      const hash = t.source_text_hash || t.trajectory_id;
+      if (!byHash[hash]) byHash[hash] = [];
+      byHash[hash].push(t);
     }
+    return Object.values(byHash)
+      .map((runs) => {
+        const sorted = runs.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+        const first = sorted[0];
+        return {
+          title: first.essay_title || "Untitled",
+          author: first.essay_author || "",
+          runs: sorted,
+          latestDate: first.created_at,
+          analysisId: first.analysis_id,
+        };
+      })
+      .sort((a, b) => (b.latestDate || "").localeCompare(a.latestDate || ""));
+  }, [pastAnalyses]);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return articleGroups;
+    const q = searchQuery.toLowerCase();
+    return articleGroups.filter(
+      (g) => g.title.toLowerCase().includes(q) || g.author.toLowerCase().includes(q)
+    );
+  }, [articleGroups, searchQuery]);
+
+  const navigateTo = (analysisId) => {
+    window.history.pushState(null, "", `#/results/${analysisId}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
   const inputBase = {
@@ -275,34 +309,63 @@ export default function InputForm({ onSubmit }) {
       </button>
     </form>
 
-    {/* Lookup previous analysis */}
+    {/* Past analyses */}
+    {articleGroups.length > 0 && (
     <div className="border-t pt-6" style={{ borderColor: "var(--smtm-border-default)" }}>
-      <p className="text-sm font-medium mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
-        Look up a previous analysis
+      <p className="text-sm font-medium mb-3 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+        Past analyses
       </p>
-      <form onSubmit={handleLookup} className="flex gap-2">
+      {articleGroups.length > 3 && (
         <input
           type="text"
-          value={lookupId}
-          onChange={(e) => setLookupId(e.target.value)}
-          placeholder="Enter analysis ID"
-          className={`flex-1 rounded-md border px-3 py-2 text-sm ${inputFocus}`}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by title or author..."
+          className={`w-full rounded-md border px-3 py-2 text-sm mb-3 ${inputFocus}`}
           style={inputBase}
         />
-        <button
-          type="submit"
-          disabled={!lookupId.trim()}
-          className="rounded-md border px-4 py-2 text-sm font-medium font-body transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          style={{
-            background: "var(--smtm-btn-secondary-bg)",
-            borderColor: "var(--smtm-btn-secondary-border)",
-            color: "var(--smtm-btn-secondary-text)",
-          }}
-        >
-          Look up
-        </button>
-      </form>
+      )}
+      <div className="space-y-1">
+        {filteredGroups.map((group) => (
+          <div key={group.runs[0].source_text_hash || group.runs[0].trajectory_id}>
+            <button
+              onClick={() => navigateTo(group.analysisId)}
+              className="w-full text-left px-3 py-2.5 rounded-md text-sm font-body transition-colors cursor-pointer hover:brightness-95"
+              style={{ background: "var(--smtm-bg-input)", border: "1px solid var(--smtm-border-input)" }}
+            >
+              <span className="font-medium" style={{ color: "var(--smtm-text-primary)" }}>
+                {group.title}
+              </span>
+              {group.author && (
+                <span className="ml-1.5" style={{ color: "var(--smtm-text-muted)" }}>
+                  by {group.author}
+                </span>
+              )}
+              <div className="flex items-center gap-3 mt-0.5 text-xs" style={{ color: "var(--smtm-text-muted)" }}>
+                <span>
+                  {group.runs.length} version{group.runs.length !== 1 ? "s" : ""}
+                </span>
+                <span>
+                  {group.runs.map((r) => {
+                    const w = r.workhorse_model?.split("-")[0] || "";
+                    return w.charAt(0).toUpperCase() + w.slice(1);
+                  }).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
+                </span>
+                {group.latestDate && (
+                  <span>{new Date(group.latestDate).toLocaleDateString()}</span>
+                )}
+              </div>
+            </button>
+          </div>
+        ))}
+        {filteredGroups.length === 0 && searchQuery && (
+          <p className="text-sm py-2 px-3 font-body" style={{ color: "var(--smtm-text-muted)" }}>
+            No matches for &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
+      </div>
     </div>
+    )}
     </div>
   );
 }

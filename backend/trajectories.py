@@ -107,6 +107,7 @@ def list_trajectories() -> list[dict]:
     ):
         try:
             data = json.loads(path.read_text())
+            decomp = data.get("stages", {}).get("decomposition", {}).get("result", {})
             result.append({
                 "trajectory_id": data["trajectory_id"],
                 "analysis_id": data.get("analysis_id"),
@@ -116,6 +117,8 @@ def list_trajectories() -> list[dict]:
                 "source_text_hash": data.get("source_text_hash"),
                 "group_id": data.get("group_id"),
                 "estimated_cost": data.get("estimated_cost"),
+                "essay_title": decomp.get("essay_title"),
+                "essay_author": decomp.get("essay_author"),
             })
         except (json.JSONDecodeError, KeyError):
             logger.warning("Skipping corrupt trajectory file: %s", path)
