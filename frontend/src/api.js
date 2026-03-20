@@ -3,29 +3,67 @@
  */
 
 /**
- * Submit a job for analysis.
+ * Fetch the model registry from the backend.
+ */
+export async function fetchModels() {
+  const res = await fetch("/api/models");
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Submit one or more configurations for analysis.
  * @param {Object} params
- * @param {string} params.provider - 'anthropic' | 'openai' | 'xai'
+ * @param {Array} params.configurations - [{workhorse_model, synthesis_model}]
  * @param {string} [params.text]
  * @param {string} [params.url]
  * @param {File} [params.file]
  * @param {string} [params.email]
- * @returns {Promise<{job_id: string}>}
+ * @param {string} [params.reuse_trajectory]
+ * @returns {Promise<{group_id: string, jobs: Array}>}
  */
-export async function submitJob({ text, url, file, email, provider }) {
-  const headers = { "X-Provider": provider || "anthropic" };
+export async function submitJob({ text, url, file, email, configurations, reuse_trajectory }) {
+  const headers = {};
 
   let body;
   if (file) {
     body = new FormData();
     body.append("file", file);
     if (email) body.append("email", email);
+    body.append("_configurations", JSON.stringify(configurations));
   } else {
     headers["Content-Type"] = "application/json";
-    body = JSON.stringify({ text: text || undefined, url: url || undefined, email: email || undefined });
+    body = JSON.stringify({
+      text: text || undefined,
+      url: url || undefined,
+      email: email || undefined,
+      configurations,
+      reuse_trajectory: reuse_trajectory || undefined,
+    });
   }
 
   const res = await fetch("/api/analyze", { method: "POST", headers, body });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
+ * Fetch list of saved trajectories.
+ */
+export async function fetchTrajectories() {
+  const res = await fetch("/api/trajectories");
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch a single trajectory by ID.
+ */
+export async function fetchTrajectory(trajectoryId) {
+  const res = await fetch(`/api/trajectories/${trajectoryId}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || `HTTP ${res.status}`);
