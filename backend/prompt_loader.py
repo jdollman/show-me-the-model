@@ -23,6 +23,7 @@ _FIELD_EXAMPLE_FILES = {
     "micro_io": "micro_io.yaml",
     "finance": "finance.yaml",
     "labor": "labor.yaml",
+    "housing": "housing.yaml",
 }
 _DEFAULT_FIELD = "macro_fiscal"
 
