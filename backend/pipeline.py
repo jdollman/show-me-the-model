@@ -14,6 +14,7 @@ from typing import Any
 
 from anthropic.types import TextBlock
 
+from backend.claude_code_runner import _call_claude_code, is_claude_code_enabled
 from backend.models import MODEL_REGISTRY, estimate_cost, get_client_for_model
 from backend.prompt_loader import load_and_render, load_field_examples
 
@@ -193,7 +194,12 @@ async def _call_model(
 ) -> tuple[str, dict]:
     """Route model calls to the right provider. Returns (text, usage_record)."""
     provider = MODEL_REGISTRY[model]["provider"]
-    if provider == "anthropic":
+    if provider == "anthropic" and is_claude_code_enabled():
+        logger.info("Routing %s through Claude Code CLI", model)
+        return await _call_claude_code(
+            model, system_prompt, user_prompt, temperature, max_tokens, retries
+        )
+    elif provider == "anthropic":
         return await _call_claude(
             model, system_prompt, user_prompt, temperature, max_tokens, retries
         )
