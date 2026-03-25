@@ -72,6 +72,21 @@ async def extract_from_url(url: str) -> str:
     return text
 
 
+async def extract_from_markdown(file_bytes: bytes) -> str:
+    """Extract text from Markdown file bytes (just decode UTF-8)."""
+    try:
+        text = file_bytes.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        raise ValueError("Could not decode Markdown file (not valid UTF-8)")
+    if not text:
+        raise ValueError("Markdown file is empty")
+    if MAX_TEXT_LENGTH and len(text) > MAX_TEXT_LENGTH:
+        raise ValueError(
+            f"Markdown text too long ({len(text)} chars). Maximum is {MAX_TEXT_LENGTH}."
+        )
+    return text
+
+
 async def extract_from_pdf(file_bytes: bytes) -> str:
     """Extract text from PDF bytes using pymupdf."""
     import pymupdf
