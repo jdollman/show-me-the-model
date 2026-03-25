@@ -141,3 +141,32 @@ export async function fetchResult(analysisId) {
   }
   return res.json();
 }
+
+/**
+ * Fetch available PDF extraction methods.
+ */
+export async function fetchExtractMethods() {
+  const res = await fetch("/api/extract-methods");
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return data.methods || [];
+}
+
+/**
+ * Preview PDF text extraction with multiple methods.
+ * @param {File} file - The PDF file
+ * @param {string[]} methodIds - Extraction method IDs to compare
+ * @returns {Promise<Object>} - {results: {method_id: {text, char_count, time_ms}}}
+ */
+export async function extractPreview(file, methodIds) {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("methods", methodIds.join(","));
+
+  const res = await fetch("/api/extract-preview", { method: "POST", body });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}

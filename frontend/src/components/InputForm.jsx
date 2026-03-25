@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import useApiSettings from "../hooks/useApiSettings";
-import { fetchModels, fetchTrajectories } from "../api";
+import { fetchModels, fetchTrajectories, fetchExtractMethods, extractPreview } from "../api";
+import ExtractionPreview from "./ExtractionPreview";
 
 const TABS = [
   { key: "text", label: "Paste Text" },
   { key: "url", label: "URL" },
-  { key: "file", label: "Upload PDF" },
+  { key: "file", label: "Upload File" },
 ];
 
 const TEXT_TEMPLATE = "# Notes for AI agents:\n# Source URL: \n# Author: \n# Title: \n\n";
@@ -48,6 +49,10 @@ export default function InputForm({ onSubmit }) {
   const [submitting, setSubmitting] = useState(false);
   const [models, setModels] = useState([]);
   const [modelsLoading, setModelsLoading] = useState(true);
+  const [extractMethods, setExtractMethods] = useState([]);
+  const [selectedMethods, setSelectedMethods] = useState(["pymupdf", "pymupdf4llm"]);
+  const [extracting, setExtracting] = useState(false);
+  const [extractResults, setExtractResults] = useState(null);
 
   useEffect(() => {
     fetchModels()
@@ -56,6 +61,12 @@ export default function InputForm({ onSubmit }) {
         // If /api/models is unavailable, leave models empty — selects will be hidden
       })
       .finally(() => setModelsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchExtractMethods()
+      .then((methods) => setExtractMethods(methods))
+      .catch(() => {});
   }, []);
 
   const hasInput =
@@ -78,6 +89,33 @@ export default function InputForm({ onSubmit }) {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toggleMethod = (id) => {
+    setSelectedMethods((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+    );
+  };
+
+  const handlePreviewExtraction = async () => {
+    if (!file || selectedMethods.length === 0) return;
+    setExtracting(true);
+    setExtractResults(null);
+    try {
+      const data = await extractPreview(file, selectedMethods);
+      setExtractResults(data.results);
+    } catch (err) {
+      setExtractResults({ _error: err.message });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleUseExtraction = (extractedText) => {
+    setText(extractedText);
+    setTab("text");
+    setFile(null);
+    setExtractResults(null);
   };
 
   const [pastAnalyses, setPastAnalyses] = useState([]);
@@ -256,26 +294,82 @@ export default function InputForm({ onSubmit }) {
           )}
 
           {tab === "file" && (
-            <div className="flex items-center gap-3">
-              <label
-                className="cursor-pointer rounded-md border px-4 py-2 text-sm font-medium font-body"
-                style={{
-                  background: "var(--smtm-btn-secondary-bg)",
-                  borderColor: "var(--smtm-btn-secondary-border)",
-                  color: "var(--smtm-btn-secondary-text)",
-                }}
-              >
-                Choose PDF
-                <input
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files[0] || null)}
-                />
-              </label>
-              <span className="text-sm" style={{ color: "var(--smtm-text-muted)" }}>
-                {file ? file.name : "No file selected"}
-              </span>
+            <div>
+              <div className="flex items-center gap-3">
+                <label
+                  className="cursor-pointer rounded-md border px-4 py-2 text-sm font-medium font-body"
+                  style={{
+                    background: "var(--smtm-btn-secondary-bg)",
+                    borderColor: "var(--smtm-btn-secondary-border)",
+                    color: "var(--smtm-btn-secondary-text)",
+                  }}
+                >
+                  Choose File
+                  <input
+                    type="file"
+                    accept=".pdf,.md,.markdown"
+                    className="hidden"
+                    onChange={(e) => {
+                      setFile(e.target.files[0] || null);
+                      setExtractResults(null);
+                    }}
+                  />
+                </label>
+                <span className="text-sm" style={{ color: "var(--smtm-text-muted)" }}>
+                  {file ? file.name : "No file selected"}
+                </span>
+              </div>
+
+              {/* Extraction method checkboxes — only for PDFs */}
+              {file && file.name.toLowerCase().endsWith(".pdf") && extractMethods.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium mb-2 font-body" style={{ color: "var(--smtm-text-secondary)" }}>
+                    Compare extraction methods:
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {extractMethods.map((m) => (
+                      <label
+                        key={m.id}
+                        className="flex items-center gap-1.5 text-xs font-body cursor-pointer"
+                        style={{ color: m.installed ? "var(--smtm-text-secondary)" : "var(--smtm-text-muted)" }}
+                        title={m.installed ? m.description : `Not installed: pip install ${m.id}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedMethods.includes(m.id)}
+                          onChange={() => toggleMethod(m.id)}
+                          disabled={!m.installed}
+                        />
+                        {m.name}
+                        {!m.installed && <span className="text-[10px]">(not installed)</span>}
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePreviewExtraction}
+                    disabled={extracting || selectedMethods.length === 0}
+                    className="mt-2 px-3 py-1.5 rounded-md text-xs font-medium font-body transition-colors cursor-pointer border"
+                    style={{
+                      background: "var(--smtm-btn-secondary-bg)",
+                      borderColor: "var(--smtm-btn-secondary-border)",
+                      color: "var(--smtm-btn-secondary-text)",
+                    }}
+                  >
+                    {extracting ? "Extracting..." : "Preview Extraction"}
+                  </button>
+                </div>
+              )}
+
+              {/* Extraction results */}
+              {extractResults && !extractResults._error && (
+                <ExtractionPreview results={extractResults} onUseExtraction={handleUseExtraction} />
+              )}
+              {extractResults?._error && (
+                <p className="mt-3 text-sm" style={{ color: "var(--smtm-sev-critical-text)" }}>
+                  Extraction failed: {extractResults._error}
+                </p>
+              )}
             </div>
           )}
         </div>
