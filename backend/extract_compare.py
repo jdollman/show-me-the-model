@@ -67,7 +67,7 @@ async def extract_with_method(file_bytes: bytes, method_id: str) -> dict:
     if not _is_installed(method["import_check"]):
         raise ValueError(
             f"Extraction method '{method_id}' is not installed. "
-            f"Install it with: pip install {method['import_check']}"
+            f"Install it with: pip install {method['id']}"
         )
 
     start = time.monotonic()
