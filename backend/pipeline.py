@@ -391,11 +391,18 @@ async def run_stage2(
     field_examples = load_field_examples(field)
     logger.info("  Field classification: %s", field)
 
+    # When routing through Claude Code CLI, skip rate limiting —
+    # no API rate limits to worry about, and each subprocess has its own overhead
+    if is_claude_code_enabled() and MODEL_REGISTRY.get(model, {}).get("provider") == "anthropic":
+        batch_size = len(STAGE2_PASSES)  # all 6 in parallel
+        batch_delay = 0
+        logger.info("  Claude Code mode: running all %d passes in parallel", batch_size)
+
     results = {}
     usage_records = []
     for i in range(0, len(STAGE2_PASSES), batch_size):
         batch = STAGE2_PASSES[i : i + batch_size]
-        if i > 0:
+        if i > 0 and batch_delay > 0:
             logger.info("  Rate limit pause (%.1fs)...", batch_delay)
             await asyncio.sleep(batch_delay)
         tasks = [
