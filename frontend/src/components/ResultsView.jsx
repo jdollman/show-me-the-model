@@ -31,7 +31,64 @@ function Prose({ text }) {
   );
 }
 
-function ShareBox({ analysisId }) {
+function formatSummaryMarkdown(result, shareUrl) {
+  const { synthesis, merged_annotations, metadata } = result;
+  const annotations = merged_annotations?.annotations || [];
+  const strengths = merged_annotations?.strengths || [];
+  const assumptions = synthesis?.key_assumptions || [];
+
+  const lines = [];
+
+  // Title
+  const title = metadata?.essay_title || "Untitled";
+  const author = metadata?.essay_author ? ` by ${metadata.essay_author}` : "";
+  lines.push(`## ${title}${author} — SMTM Analysis\n`);
+
+  // Bottom line
+  if (synthesis?.bottom_line) {
+    lines.push(`**Bottom Line:** ${synthesis.bottom_line}\n`);
+  }
+
+  // Critical issues
+  const critical = annotations.filter((a) => a.severity === "Critical");
+  if (critical.length > 0) {
+    lines.push("**Critical Issues:**");
+    critical.forEach((a) => {
+      const detail = a.dominant_issue || (a.explanation ? a.explanation.slice(0, 120) + "..." : "");
+      lines.push(`- **${a.title}**${detail ? ` — ${detail}` : ""}`);
+    });
+    lines.push("");
+  }
+
+  // Key assumptions (unstated/weak only)
+  const flagged = assumptions.filter(
+    (a) => a.stated_or_unstated === "Unstated" || a.strength === "Weak"
+  );
+  if (flagged.length > 0) {
+    lines.push("**Key Assumptions Challenged:**");
+    flagged.slice(0, 5).forEach((a) => {
+      const tag = [a.stated_or_unstated, a.strength].filter(Boolean).join(", ");
+      lines.push(`- ${a.assumption} (${tag})`);
+    });
+    lines.push("");
+  }
+
+  // Strengths
+  if (strengths.length > 0) {
+    lines.push("**What It Gets Right:**");
+    strengths.forEach((s) => lines.push(`- ${s.title}`));
+    lines.push("");
+  }
+
+  // Link
+  if (shareUrl) {
+    lines.push(`[Full analysis](${shareUrl})`);
+  }
+
+  return lines.join("\n");
+}
+
+function ShareBox({ analysisId, result }) {
   const [copied, setCopied] = useState(null);
   const shareUrl = `${window.location.origin}/#/results/${analysisId}`;
 
@@ -71,6 +128,19 @@ function ShareBox({ analysisId }) {
       >
         {copied === "link" ? "Copied!" : "Copy link"}
       </button>
+      {result && (
+        <button
+          onClick={() => copy(formatSummaryMarkdown(result, shareUrl), "summary")}
+          className="px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
+          style={{
+            background: "var(--smtm-btn-secondary-bg)",
+            color: "var(--smtm-btn-secondary-text)",
+            border: "1px solid var(--smtm-btn-secondary-border)",
+          }}
+        >
+          {copied === "summary" ? "Copied!" : "Copy summary"}
+        </button>
+      )}
     </div>
   );
 }
@@ -194,7 +264,7 @@ export default function ResultsView({ result, analysisId, groupId, jobStates = [
         </div>
         {analysisId && (
           <div className="max-w-[1100px] mx-auto mt-3">
-            <ShareBox analysisId={analysisId} />
+            <ShareBox analysisId={analysisId} result={result} />
           </div>
         )}
       </header>
