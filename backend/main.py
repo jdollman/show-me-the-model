@@ -25,7 +25,8 @@ from backend.email_notify import send_results_email
 from backend.jobs import STAGE_NAMES, JobStatus, JobStore
 from backend.models import _PROVIDER_DEFAULTS, MODEL_REGISTRY, get_available_models, get_model_label
 from backend.pipeline import run_pipeline
-from backend.text_extract import extract_from_pdf, extract_from_url, validate_text
+from backend.extract_compare import extract_with_method, get_available_methods
+from backend.text_extract import MAX_PDF_SIZE, extract_from_markdown, extract_from_pdf, extract_from_url, validate_text
 from backend.trajectories import (
     generate_group_id,
     generate_trajectory_id,
@@ -145,8 +146,11 @@ async def _resolve_source_text(
         elif url:
             return await extract_from_url(url), "url", url
         else:
-            pdf_bytes = await file.read()
-            return await extract_from_pdf(pdf_bytes), "pdf", None
+            file_bytes = await file.read()
+            filename = (file.filename or "").lower()
+            if filename.endswith((".md", ".markdown")):
+                return await extract_from_markdown(file_bytes), "markdown", None
+            return await extract_from_pdf(file_bytes), "pdf", None
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -416,6 +420,49 @@ async def analyze(
 @app.get("/models")
 async def get_models():
     return {"models": get_available_models()}
+
+
+@app.get("/extract-methods")
+async def list_extract_methods():
+    """Return available PDF extraction methods with install status."""
+    return {"methods": get_available_methods()}
+
+
+@app.post("/extract-preview")
+@limiter.limit("10/minute")
+async def extract_preview(
+    request: Request,
+    file: UploadFile = File(...),
+):
+    """Extract text from a PDF using multiple methods for comparison.
+
+    Accepts multipart form with 'file' and 'methods' (comma-separated method IDs).
+    Returns {method_id: {text, char_count, time_ms}} for each requested method.
+    """
+    form = await request.form()
+    methods_raw = form.get("methods", "pymupdf,pymupdf4llm")
+    method_ids = [m.strip() for m in methods_raw.split(",") if m.strip()]
+
+    if not method_ids:
+        raise HTTPException(status_code=400, detail="No extraction methods specified")
+    if len(method_ids) > 4:
+        raise HTTPException(status_code=400, detail="Maximum 4 methods per request")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_PDF_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large ({len(file_bytes)} bytes). Maximum is {MAX_PDF_SIZE}.",
+        )
+
+    results = {}
+    for method_id in method_ids:
+        try:
+            results[method_id] = await extract_with_method(file_bytes, method_id)
+        except ValueError as e:
+            results[method_id] = {"error": str(e)}
+
+    return {"results": results}
 
 
 @app.get("/trajectories")
